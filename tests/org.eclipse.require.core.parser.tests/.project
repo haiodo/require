@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>org.eclipse.require.core</name>
+	<name>org.eclipse.require.core.parser.tests</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -20,15 +20,9 @@
 			<arguments>
 			</arguments>
 		</buildCommand>
-		<buildCommand>
-			<name>org.eclipse.dltk.core.scriptbuilder</name>
-			<arguments>
-			</arguments>
-		</buildCommand>
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.pde.PluginNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
-		<nature>org.deved.antlride.core.nature</nature>
 	</natures>
 </projectDescription>

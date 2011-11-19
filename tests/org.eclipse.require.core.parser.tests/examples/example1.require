@@ -1,0 +1,48 @@
+component "q7" {
+	component "core" {
+		plugins {
+			"core/+", // Include all plugins from core folder (exclude subfolders)
+			// to include also with all subfolders "core/*/+" should be used
+			"launching/+" // Also include all plugins from
+		}
+		component "contexts" { // Will create "q7.core.contexts" working set on import
+			plugins { "+com.xored.q7.ctx*" } 
+			// Include all based on pattern from all projects detected based by root
+		}
+	}
+	component "runtime" {
+		plugins {
+			"runtime/*/+*", // All plugins from runtime, except subcomponent modules
+		}
+		component "tesla" {
+			plugins "runtime/tesla/+" // will exclude recording plugins because of subcomponent
+			component "recording" {
+				plugins "runtime/tesla/+com.xored.tesla.recording*"
+			}
+		}
+		component "iml" {
+			plugins "runtime/iml/+"
+		}
+		component "updates" {
+			plugins "runtime/updates/+"
+		}
+	}
+	component "x5" {
+		plugins { 
+			"+com.xored.q7.x5*",
+			"+com.xored.sherlock*"
+		}
+	}
+	component "watson" {
+		plugins "+com.xored.watson*"
+	}
+	component "rcp" {
+		plugins "rcp/+"
+	}
+	components "reporting" {
+		plugins {
+			"reporting/+",
+			"mustache/+"
+		}
+	}
+}
