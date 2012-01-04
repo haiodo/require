@@ -1,4 +1,4 @@
-// $ANTLR 3.4 C:\\Develop\\git\\require\\plugins\\org.eclipse.require.core\\parser\\RequireConfig.g 2011-11-19 13:11:46
+// $ANTLR 3.4 C:\\Develop\\git\\require\\plugins\\org.eclipse.require.core\\parser\\RequireConfig.g 2011-11-20 12:05:04
 
 package org.eclipse.require.core.parser;
   import org.eclipse.require.core.configuration.*;

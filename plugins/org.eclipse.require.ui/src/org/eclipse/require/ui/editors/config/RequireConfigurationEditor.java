@@ -9,9 +9,11 @@ public class RequireConfigurationEditor extends TextEditor {
 	public RequireConfigurationEditor() {
 		super();
 		colorManager = new ColorManager();
-		setSourceViewerConfiguration(new RequireConfigConfiguration(colorManager));
+		setSourceViewerConfiguration(new RequireConfigConfiguration(
+				colorManager));
 		setDocumentProvider(new RequireConfigDocumentProvider());
 	}
+
 	public void dispose() {
 		colorManager.dispose();
 		super.dispose();
