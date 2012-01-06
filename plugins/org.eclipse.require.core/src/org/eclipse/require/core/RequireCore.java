@@ -29,6 +29,15 @@ public class RequireCore {
 		InputStream contents = null;
 		try {
 			contents = file.getContents();
+			return loadConfiguration(contents);
+		} catch (Throwable e) {
+			RequireCorePlugin.log(e);
+		}
+		return null;
+	}
+
+	public static Configuration loadConfiguration(InputStream contents) {
+		try {
 			ANTLRInputStream input = new ANTLRInputStream(contents);
 			RequireConfigLexer lexer = new RequireConfigLexer(input);
 			CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -36,6 +45,7 @@ public class RequireCore {
 			return parser.configuration();
 		} catch (Throwable e) {
 			RequireCorePlugin.log(e);
+			return null;
 		} finally {
 			if (contents != null) {
 				try {
@@ -45,6 +55,5 @@ public class RequireCore {
 				}
 			}
 		}
-		return null;
 	}
 }

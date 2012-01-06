@@ -36,6 +36,7 @@ public class ApplyRequire implements IObjectActionDelegate {
 					if (baseDir != null) {
 						System.out.println("#");
 						RequireEngine engine = new RequireEngine(baseDir);
+						engine.applyConfiguration(configuration);
 						System.out.println("$");
 					}
 				}

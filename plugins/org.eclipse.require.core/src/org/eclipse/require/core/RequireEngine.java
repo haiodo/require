@@ -7,8 +7,10 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.internal.resources.ProjectDescription;
 import org.eclipse.core.internal.resources.ProjectDescriptionReader;
@@ -17,6 +19,10 @@ import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.emf.common.util.EList;
+import org.eclipse.require.core.configuration.Component;
+import org.eclipse.require.core.configuration.Configuration;
+import org.eclipse.require.core.configuration.PluginRequire;
 import org.xml.sax.InputSource;
 
 public class RequireEngine {
@@ -31,6 +37,12 @@ public class RequireEngine {
 		IProject existingProject;
 		public ProjectDescription description;
 		public IPath absPath;
+	}
+
+	public static class ComponentsProjects {
+		public String componentName;
+		public List<IPath> projects;
+		public Component component;
 	}
 
 	private Map<IProject, IPath> conflicts = new HashMap<IProject, IPath>();
@@ -140,5 +152,159 @@ public class RequireEngine {
 				}
 			}
 		}
+	}
+
+	public void applyConfiguration(Configuration config) {
+		Set<IPath> availableProjects = projectsMap.keySet();
+		List<ComponentsProjects> componentProjects = new ArrayList<ComponentsProjects>();
+		processComponents(config.getComponents(), availableProjects,
+				componentProjects, "");
+		// apply
+	}
+
+	/**
+	 * Process children at first, then process plugins section, and so on
+	 */
+	public static void processComponents(EList<Component> components,
+			Set<IPath> availableProjects,
+			List<ComponentsProjects> componentProjects, String prefix) {
+		for (Component component : components) {
+			String name = prefix + component.getName();
+			processComponents(component.getComponents(), availableProjects,
+					componentProjects, name + ".");
+
+			EList<PluginRequire> plugins = component.getPlugins();
+			List<IPath> matches = new ArrayList<IPath>();
+			for (PluginRequire pluginRequire : plugins) {
+				matches.addAll(findProjectMatches(pluginRequire,
+						availableProjects));
+			}
+			ComponentsProjects cp = new ComponentsProjects();
+			cp.componentName = name;
+			cp.projects = matches;
+			cp.component = component;
+			componentProjects.add(cp);
+		}
+	}
+
+	/**
+	 * Allow following matching scenarious:
+	 * 
+	 * 1) a/b/c/d a/b/c is treated as path. and last d is treated as plugin
+	 * name.
+	 * 
+	 * 2) a is treated as plugin name.
+	 * 
+	 * 3) a* is treadted as wildcard for plugin name
+	 * 
+	 * 4) a/b/c/** is treated all plugins (include subfolders) with path prefix
+	 * a/b/c/
+	 * 
+	 * 5) a/b/c/* is treated as all plugins(exclude subfolders) from folder
+	 * a/b/c/
+	 * 
+	 * 
+	 */
+	public static Set<IPath> findProjectMatches(PluginRequire pluginRequire,
+			Set<IPath> availableProjects) {
+		String pattern = pluginRequire.getPattern();
+
+		// add extra * to end of /
+		if (pattern.endsWith("/")) {
+			pattern = pattern + "*";
+		}
+
+		IPath basePath = new Path(pattern);
+		String pluginPattern = basePath.lastSegment();
+		IPath folderPattern = basePath.removeLastSegments(1);
+
+		boolean exclude = false;
+		if (pluginPattern.startsWith("-")) {
+			exclude = true;
+			pluginPattern = pluginPattern.substring(1);
+		}
+
+		// Go filter folders first
+		Set<IPath> result = new HashSet<IPath>();
+		result.addAll(availableProjects);
+		for (int i = 0; i < folderPattern.segmentCount(); i++) {
+			String part = folderPattern.segment(i);
+			if (part.equals("**")) {
+				break;// All already matched plugins is ok
+			}
+			if (part.equals("*")) {
+				// All on this level is ok.
+				continue;
+			}
+			List<IPath> toRemove = new ArrayList<IPath>();
+			for (IPath iPath : result) {
+				if (part.isEmpty() && i == folderPattern.segmentCount() - 1) {
+					if (iPath.segmentCount() > folderPattern.segmentCount()) {
+						toRemove.add(iPath);
+					}
+					continue;
+				}
+				if (iPath.segmentCount() < i + 1) {
+					toRemove.add(iPath);// Doesn't match because segment count
+										// is less
+				} else {
+					String segm = iPath.segment(i);
+					boolean match = matchSegment(segm, part);
+					if ((match == exclude)) {
+						toRemove.add(iPath);
+					}
+				}
+			}
+			result.removeAll(toRemove);
+		}
+		// So lets filter plugin names here.
+		List<IPath> toRemove = new ArrayList<IPath>();
+		for (IPath iPath : result) {
+			String pluginName = iPath.lastSegment();
+			if (pluginPattern.equals("*")) {
+				continue;
+			}
+			if (matchSegment(pluginName, pluginPattern) == exclude) {
+				toRemove.add(iPath);
+			}
+		}
+		result.removeAll(toRemove);
+		availableProjects.removeAll(result);
+		return result;
+	}
+
+	private static boolean matchSegment(String segm, String pattern) {
+		String[] patternParts = split(pattern);
+		String text = segm;
+		int index = 0;
+		for (String t : patternParts) {
+			int idx = text.indexOf(t);
+			if (idx == -1) {
+				return false;
+			}
+			if (index == 0 && !pattern.startsWith("*") && idx != 0) {
+				return false; // In case there is no * in start of pattern, and
+								// we found first part not at start
+			}
+			text = text.substring(idx + t.length());
+			index++;
+		}
+		return true;
+	}
+
+	private static String[] split(String pattern) {
+		List<String> result = new ArrayList<String>();
+		int pos = 0;
+		for (int i = 0; i < pattern.length(); i++) {
+			if (pattern.charAt(i) == '*') {
+				result.add(pattern.substring(pos, i));
+				pos = i + 1;
+			}
+		}
+		if (pos == 0 && pattern.length() > 0) {
+			result.add(pattern);
+		}
+
+		return result.toArray(new String[result.size()]);
 	}
 }

@@ -2,26 +2,19 @@ package org.eclipse.require.core.parser.tests;
 
 import junit.framework.TestCase;
 
-import org.antlr.runtime.ANTLRStringStream;
-import org.antlr.runtime.CommonTokenStream;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.require.core.RequireCore;
 import org.eclipse.require.core.configuration.Component;
 import org.eclipse.require.core.configuration.Configuration;
 import org.eclipse.require.core.configuration.PluginRequire;
-import org.eclipse.require.core.parser.RequireConfigLexer;
-import org.eclipse.require.core.parser.RequireConfigParser;
 import org.junit.Test;
 
 public class RequireConfigurationParserTests {
 	@Test
 	public void parseRequreConfigComponent() throws Exception {
 		String content = "component \"core\" { }";
+		Configuration configuration = RequireCore.parseConfiguration(content);
 
-		ANTLRStringStream input = new ANTLRStringStream(content);
-		RequireConfigLexer lexer = new RequireConfigLexer(input);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
-		RequireConfigParser parser = new RequireConfigParser(tokens);
-		Configuration configuration = parser.configuration();
 		TestCase.assertNotNull(configuration);
 		EList<Component> components = configuration.getComponents();
 		TestCase.assertEquals(1, components.size());
@@ -33,11 +26,8 @@ public class RequireConfigurationParserTests {
 	public void parseRequreConfigComponent2() throws Exception {
 		String content = "component core { }";
 
-		ANTLRStringStream input = new ANTLRStringStream(content);
-		RequireConfigLexer lexer = new RequireConfigLexer(input);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
-		RequireConfigParser parser = new RequireConfigParser(tokens);
-		Configuration configuration = parser.configuration();
+		Configuration configuration = RequireCore.parseConfiguration(content);
+
 		TestCase.assertNotNull(configuration);
 		EList<Component> components = configuration.getComponents();
 		TestCase.assertEquals(1, components.size());
@@ -49,11 +39,8 @@ public class RequireConfigurationParserTests {
 	public void parseRequreConfigComponent3() throws Exception {
 		String content = "component core { }\n" + "component ui {}";
 
-		ANTLRStringStream input = new ANTLRStringStream(content);
-		RequireConfigLexer lexer = new RequireConfigLexer(input);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
-		RequireConfigParser parser = new RequireConfigParser(tokens);
-		Configuration configuration = parser.configuration();
+		Configuration configuration = RequireCore.parseConfiguration(content);
+
 		TestCase.assertNotNull(configuration);
 		EList<Component> components = configuration.getComponents();
 		TestCase.assertEquals(2, components.size());
@@ -72,11 +59,7 @@ public class RequireConfigurationParserTests {
 				"plugins \"org.eclipse.require*\"\n" + //
 				"}"; //
 
-		ANTLRStringStream input = new ANTLRStringStream(content);
-		RequireConfigLexer lexer = new RequireConfigLexer(input);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
-		RequireConfigParser parser = new RequireConfigParser(tokens);
-		Configuration configuration = parser.configuration();
+		Configuration configuration = RequireCore.parseConfiguration(content);
 		TestCase.assertNotNull(configuration);
 		EList<Component> components = configuration.getComponents();
 		TestCase.assertEquals(1, components.size());
