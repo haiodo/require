@@ -1,0 +1,51 @@
+component q7 {
+	component "core" {
+		plugins {
+			"core/", 
+			"launching/" 
+		}
+		component "contexts" { 
+			plugins { 
+				"core/contexts/" 
+			} 
+		}
+	}
+	component "runtime" {
+		plugins {
+			"runtime/**"
+		}
+		component "tesla" {
+			plugins "runtime/tesla/"
+			component "recording" {
+				plugins "runtime/tesla/com.xored.tesla.recording*"
+			}
+		}
+		component "iml" {
+			plugins "runtime/iml/"
+		}
+		component "updates" {
+			plugins "runtime/updates/"
+		}
+	}
+	component "x5" {
+		plugins {
+			"com.xored.q7.x5*",
+			"com.xored.watson*",
+			"com.xored.q7.sherlock*"
+		}
+	}
+	component "rcp" {
+		plugins "rcp/"
+		component "contexts" { 
+			plugins { 
+				"rcp/contexts/" 
+			} 
+		}
+	}
+	component "reporting" {
+		plugins {
+			"reporting/",
+			"mustache/"
+		}
+	}
+}
