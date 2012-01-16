@@ -16,8 +16,13 @@ import org.eclipse.core.internal.resources.ProjectDescription;
 import org.eclipse.core.internal.resources.ProjectDescriptionReader;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.require.core.configuration.Component;
@@ -31,15 +36,15 @@ public class RequireEngine {
 	/**
 	 * Map of [relative to base path: project info]
 	 */
-	private static class ProjectInfo {
-		String name;
-		IPath path;
-		IProject existingProject;
+	public static class ProjectInfo {
+		public String name;
+		public IPath path;
+		public IProject existingProject;
 		public ProjectDescription description;
 		public IPath absPath;
 	}
 
-	public static class ComponentsProjects {
+	public static class ComponentProjectsInfo {
 		public String componentName;
 		public List<IPath> projects;
 		public Component component;
@@ -54,6 +59,9 @@ public class RequireEngine {
 
 	public RequireEngine(String baseDir) {
 		this.baseDir = new Path(new File(baseDir).getAbsolutePath());
+	}
+
+	public void findProjects(IProgressMonitor monitor) {
 		findProjects();
 		findExistingProjects();
 	}
@@ -154,12 +162,59 @@ public class RequireEngine {
 		}
 	}
 
-	public void applyConfiguration(Configuration config) {
-		Set<IPath> availableProjects = projectsMap.keySet();
-		List<ComponentsProjects> componentProjects = new ArrayList<ComponentsProjects>();
+	public List<ComponentProjectsInfo> applyConfiguration(Configuration config,
+			IProgressMonitor monitor) {
+		Set<IPath> availableProjects = new HashSet<IPath>(projectsMap.keySet());
+		final List<ComponentProjectsInfo> componentProjects = new ArrayList<ComponentProjectsInfo>();
 		processComponents(config.getComponents(), availableProjects,
 				componentProjects, "");
 		// apply
+		// Create projects
+		try {
+			ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+				@Override
+				public void run(IProgressMonitor monitor) throws CoreException {
+					monitor.beginTask("Apply require project configuration",
+							componentProjects.size());
+					for (ComponentProjectsInfo cp : componentProjects) {
+						monitor.setTaskName("Apply component: "
+								+ cp.componentName);
+						for (IPath prj : cp.projects) {
+							ProjectInfo info = projectsMap.get(prj);
+							if (info != null) {
+								if (info.existingProject == null) {
+									// Create project if it doesn't exist
+									IProject project = ResourcesPlugin
+											.getWorkspace().getRoot()
+											.getProject(info.name);
+									IProjectDescription description = ResourcesPlugin
+											.getWorkspace()
+											.newProjectDescription(info.name);
+									description.setLocation(info.absPath);
+									try {
+										project.create(description,
+												new NullProgressMonitor());
+										project.open(
+												IResource.BACKGROUND_REFRESH,
+												new NullProgressMonitor());
+									} catch (CoreException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+									// Fill project
+									info.existingProject = project;
+								}
+							}
+						}
+					}
+				}
+			}, monitor);
+		} catch (CoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return componentProjects;
 	}
 
 	/**
@@ -167,7 +222,7 @@ public class RequireEngine {
 	 */
 	public static void processComponents(EList<Component> components,
 			Set<IPath> availableProjects,
-			List<ComponentsProjects> componentProjects, String prefix) {
+			List<ComponentProjectsInfo> componentProjects, String prefix) {
 		for (Component component : components) {
 			String name = prefix + component.getName();
 			processComponents(component.getComponents(), availableProjects,
@@ -179,7 +234,7 @@ public class RequireEngine {
 				matches.addAll(findProjectMatches(pluginRequire,
 						availableProjects));
 			}
-			ComponentsProjects cp = new ComponentsProjects();
+			ComponentProjectsInfo cp = new ComponentProjectsInfo();
 			cp.componentName = name;
 			cp.projects = matches;
 			cp.component = component;
@@ -306,5 +361,9 @@ public class RequireEngine {
 		}
 
 		return result.toArray(new String[result.size()]);
+	}
+
+	public ProjectInfo getProjectInfo(IPath p) {
+		return projectsMap.get(p);
 	}
 }

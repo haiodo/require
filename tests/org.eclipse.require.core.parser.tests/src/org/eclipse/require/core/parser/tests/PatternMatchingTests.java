@@ -12,7 +12,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.require.core.RequireCore;
 import org.eclipse.require.core.RequireEngine;
-import org.eclipse.require.core.RequireEngine.ComponentsProjects;
+import org.eclipse.require.core.RequireEngine.ComponentProjectsInfo;
 import org.eclipse.require.core.configuration.Configuration;
 import org.junit.Test;
 
@@ -24,12 +24,12 @@ public class PatternMatchingTests {
 		Configuration configuration = RequireCore.loadConfiguration(stream);
 		Set<IPath> projects = new HashSet<IPath>();
 		fillPaths(projects);
-		List<ComponentsProjects> componentProjects = new ArrayList<ComponentsProjects>();
+		List<ComponentProjectsInfo> componentProjects = new ArrayList<ComponentProjectsInfo>();
 		RequireEngine.processComponents(configuration.getComponents(),
 				projects, componentProjects, "");
 		TestCase.assertEquals(32, projects.size());
 		StringBuilder bld = new StringBuilder();
-		for (ComponentsProjects cp : componentProjects) {
+		for (ComponentProjectsInfo cp : componentProjects) {
 			bld.append("\n").append(cp.componentName).append(" size: ")
 					.append(Integer.toString(cp.projects.size())).append(", ");
 			for (IPath prj : cp.projects) {
