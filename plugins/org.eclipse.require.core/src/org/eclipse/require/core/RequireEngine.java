@@ -57,6 +57,8 @@ public class RequireEngine {
 
 	private List<IProject> unreferenced = new ArrayList<IProject>();
 
+	private Set<IPath> availableProjects;
+
 	public RequireEngine(String baseDir) {
 		this.baseDir = new Path(new File(baseDir).getAbsolutePath());
 	}
@@ -162,12 +164,18 @@ public class RequireEngine {
 		}
 	}
 
-	public List<ComponentProjectsInfo> applyConfiguration(Configuration config,
-			IProgressMonitor monitor) {
-		Set<IPath> availableProjects = new HashSet<IPath>(projectsMap.keySet());
-		final List<ComponentProjectsInfo> componentProjects = new ArrayList<ComponentProjectsInfo>();
+	public List<ComponentProjectsInfo> processConfiguration(
+			Configuration config, IProgressMonitor monitor) {
+		availableProjects = new HashSet<IPath>(projectsMap.keySet());
+		List<ComponentProjectsInfo> componentProjects = new ArrayList<ComponentProjectsInfo>();
 		processComponents(config.getComponents(), availableProjects,
 				componentProjects, "");
+
+		return componentProjects;
+	}
+
+	public void applyConfiguration(final IProgressMonitor monitor,
+			final List<ComponentProjectsInfo> componentProjects) {
 		// apply
 		// Create projects
 		try {
@@ -177,9 +185,15 @@ public class RequireEngine {
 					monitor.beginTask("Apply require project configuration",
 							componentProjects.size());
 					for (ComponentProjectsInfo cp : componentProjects) {
+						if (monitor.isCanceled()) {
+							return;
+						}
 						monitor.setTaskName("Apply component: "
 								+ cp.componentName);
 						for (IPath prj : cp.projects) {
+							if (monitor.isCanceled()) {
+								return;
+							}
 							ProjectInfo info = projectsMap.get(prj);
 							if (info != null) {
 								if (info.existingProject == null) {
@@ -187,19 +201,20 @@ public class RequireEngine {
 									IProject project = ResourcesPlugin
 											.getWorkspace().getRoot()
 											.getProject(info.name);
-									IProjectDescription description = ResourcesPlugin
-											.getWorkspace()
-											.newProjectDescription(info.name);
-									description.setLocation(info.absPath);
-									try {
-										project.create(description,
-												new NullProgressMonitor());
-										project.open(
-												IResource.BACKGROUND_REFRESH,
-												new NullProgressMonitor());
-									} catch (CoreException e) {
-										// TODO Auto-generated catch block
-										e.printStackTrace();
+									if (!project.exists()) {
+										IProjectDescription description = ResourcesPlugin
+												.getWorkspace()
+												.newProjectDescription(
+														info.name);
+										description.setLocation(info.absPath);
+										try {
+											project.create(description,
+													new NullProgressMonitor());
+											project.open(new NullProgressMonitor());
+										} catch (CoreException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										}
 									}
 									// Fill project
 									info.existingProject = project;
@@ -210,11 +225,8 @@ public class RequireEngine {
 				}
 			}, monitor);
 		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			RequireCorePlugin.log(e);
 		}
-
-		return componentProjects;
 	}
 
 	/**
@@ -263,10 +275,14 @@ public class RequireEngine {
 	public static Set<IPath> findProjectMatches(PluginRequire pluginRequire,
 			Set<IPath> availableProjects) {
 		String pattern = pluginRequire.getPattern();
-
+		boolean disabledPluginSet = false;
 		// add extra * to end of /
 		if (pattern.endsWith("/")) {
 			pattern = pattern + "*";
+		}
+		if (pattern.startsWith("!")) {
+			disabledPluginSet = true;
+			pattern = pattern.substring(1);
 		}
 
 		IPath basePath = new Path(pattern);
@@ -325,6 +341,9 @@ public class RequireEngine {
 		}
 		result.removeAll(toRemove);
 		availableProjects.removeAll(result);
+		if (disabledPluginSet) {
+			result.clear();
+		}
 		return result;
 	}
 

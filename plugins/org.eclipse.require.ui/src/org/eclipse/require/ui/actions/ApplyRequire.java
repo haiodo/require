@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -20,14 +19,12 @@ import org.eclipse.require.core.RequireEngine;
 import org.eclipse.require.core.RequireEngine.ComponentProjectsInfo;
 import org.eclipse.require.core.RequireEngine.ProjectInfo;
 import org.eclipse.require.core.configuration.Configuration;
+import org.eclipse.require.ui.wizards.RequireConfirmationDialog;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.IWorkingSetManager;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.internal.WorkbenchPlugin;
-import org.eclipse.ui.internal.registry.WorkingSetDescriptor;
-import org.eclipse.ui.internal.registry.WorkingSetRegistry;
 
 public class ApplyRequire implements IObjectActionDelegate {
 
@@ -66,45 +63,57 @@ public class ApplyRequire implements IObjectActionDelegate {
 								engine.findProjects(new SubProgressMonitor(
 										monitor, 20));
 								List<ComponentProjectsInfo> components = engine
-										.applyConfiguration(configuration,
+										.processConfiguration(configuration,
 												new SubProgressMonitor(monitor,
-														80));
-								// Create workingsets, if required
+														40));
 
-								IWorkingSetManager mgr = PlatformUI
-										.getWorkbench().getWorkingSetManager();
-								for (ComponentProjectsInfo cp : components) {
-									IWorkingSet[] allWorkingSets = mgr
-											.getAllWorkingSets();
-									IWorkingSet set = null;
-									for (IWorkingSet iWorkingSet : allWorkingSets) {
-										if (iWorkingSet.getName().equals(
-												cp.componentName)) {
-											// found
-											set = iWorkingSet;
-											break;
+								// Create workingsets, if required
+								RequireConfirmationDialog dialog = new RequireConfirmationDialog(
+										targetPart.getSite().getShell());
+								if (dialog.open(components)) {
+									components = dialog.getResultComponents();
+									engine.applyConfiguration(
+											new SubProgressMonitor(monitor, 40),
+											components);
+									IWorkingSetManager mgr = PlatformUI
+											.getWorkbench()
+											.getWorkingSetManager();
+									for (ComponentProjectsInfo cp : components) {
+										if( cp.projects.isEmpty()) {
+											continue;
 										}
-									}
-									List<IAdaptable> projects = new ArrayList<IAdaptable>();
-									for (IPath p : cp.projects) {
-										ProjectInfo info = engine
-												.getProjectInfo(p);
-										if (info != null) {
-											projects.add(info.existingProject);
+										IWorkingSet[] allWorkingSets = mgr
+												.getAllWorkingSets();
+										IWorkingSet set = null;
+										for (IWorkingSet iWorkingSet : allWorkingSets) {
+											if (iWorkingSet.getName().equals(
+													cp.componentName)) {
+												// found
+												set = iWorkingSet;
+												break;
+											}
 										}
-									}
-									if (set == null) {
-										// Create working set
-										IWorkingSet workingSet = mgr
-												.createWorkingSet(
-														cp.componentName,
-														new IAdaptable[0]);
-										workingSet
-												.setId("org.eclipse.jdt.ui.JavaWorkingSetPage");
-										workingSet.setElements(projects
-												.toArray(new IAdaptable[projects
-														.size()]));
-										mgr.addWorkingSet(workingSet);
+										List<IAdaptable> projects = new ArrayList<IAdaptable>();
+										for (IPath p : cp.projects) {
+											ProjectInfo info = engine
+													.getProjectInfo(p);
+											if (info != null) {
+												projects.add(info.existingProject);
+											}
+										}
+										if (set == null) {
+											// Create working set
+											IWorkingSet workingSet = mgr
+													.createWorkingSet(
+															cp.componentName,
+															new IAdaptable[0]);
+											workingSet
+													.setId("org.eclipse.jdt.ui.JavaWorkingSetPage");
+											workingSet.setElements(projects
+													.toArray(new IAdaptable[projects
+															.size()]));
+											mgr.addWorkingSet(workingSet);
+										}
 									}
 								}
 							}

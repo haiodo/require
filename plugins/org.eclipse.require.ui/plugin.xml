@@ -25,7 +25,7 @@
             class="org.eclipse.require.ui.views.RequireConfigurationView"
             icon="icons/sample.gif"
             id="org.eclipse.require.ui.cfgs"
-            name="Require configurations"
+            name="Require"
             restorable="true">
       </view>
    </extension>
@@ -36,12 +36,6 @@
             id="org.eclipse.require.ui.require"
             nameFilter="*.require"
             objectClass="org.eclipse.core.resources.IFile">
-         <menu
-               icon="icons/sample.gif"
-               id="org.eclipse.require.ui.menu1"
-               label="Require"
-               path="require">
-         </menu>
          <action
                class="org.eclipse.require.ui.actions.ApplyRequire"
                icon="icons/sample.gif"
