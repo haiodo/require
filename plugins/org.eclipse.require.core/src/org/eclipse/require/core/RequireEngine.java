@@ -22,8 +22,8 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.require.core.configuration.Component;
 import org.eclipse.require.core.configuration.Configuration;
@@ -209,8 +209,14 @@ public class RequireEngine {
 										description.setLocation(info.absPath);
 										try {
 											project.create(description,
-													new NullProgressMonitor());
-											project.open(new NullProgressMonitor());
+													new SubProgressMonitor(
+															monitor, 1));
+											project.open(new SubProgressMonitor(
+													monitor, 1));
+											project.refreshLocal(
+													IResource.DEPTH_INFINITE,
+													new SubProgressMonitor(
+															monitor, 1));
 										} catch (CoreException e) {
 											// TODO Auto-generated catch block
 											e.printStackTrace();
@@ -243,8 +249,18 @@ public class RequireEngine {
 			EList<PluginRequire> plugins = component.getPlugins();
 			List<IPath> matches = new ArrayList<IPath>();
 			for (PluginRequire pluginRequire : plugins) {
-				matches.addAll(findProjectMatches(pluginRequire,
-						availableProjects));
+				if (!pluginRequire.getPattern().startsWith("-")) {
+					matches.addAll(findProjectMatches(pluginRequire,
+							availableProjects));
+				}
+			}
+			for (PluginRequire pluginRequire : plugins) {
+				if (pluginRequire.getPattern().startsWith("-")) {
+					Set<IPath> newMatches = new HashSet<IPath>();
+					newMatches.addAll(matches);
+					matches.clear();
+					matches.addAll(findProjectMatches(pluginRequire, newMatches));
+				}
 			}
 			ComponentProjectsInfo cp = new ComponentProjectsInfo();
 			cp.componentName = name;
@@ -285,15 +301,14 @@ public class RequireEngine {
 			pattern = pattern.substring(1);
 		}
 
+		boolean exclude = false;
+		if (pattern.startsWith("-")) {
+			exclude = true;
+			pattern = pattern.substring(1);
+		}
 		IPath basePath = new Path(pattern);
 		String pluginPattern = basePath.lastSegment();
 		IPath folderPattern = basePath.removeLastSegments(1);
-
-		boolean exclude = false;
-		if (pluginPattern.startsWith("-")) {
-			exclude = true;
-			pluginPattern = pluginPattern.substring(1);
-		}
 
 		// Go filter folders first
 		Set<IPath> result = new HashSet<IPath>();
@@ -321,7 +336,8 @@ public class RequireEngine {
 				} else {
 					String segm = iPath.segment(i);
 					boolean match = matchSegment(segm, part);
-					if ((match == exclude)) {
+					// Only if full pattern match, do exclude
+					if ((match == (exclude && i == folderPattern.segmentCount() - 1))) {
 						toRemove.add(iPath);
 					}
 				}
