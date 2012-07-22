@@ -1,6 +1,5 @@
 package org.eclipse.require.core;
 
-import org.antlr.runtime.RecognitionException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;

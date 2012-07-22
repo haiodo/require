@@ -1,5 +1,7 @@
 package org.eclipse.require.ui;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -14,7 +16,7 @@ public class RequireUIPlugin extends AbstractUIPlugin {
 
 	// The shared instance
 	private static RequireUIPlugin plugin;
-	
+
 	/**
 	 * The constructor
 	 */
@@ -23,7 +25,10 @@ public class RequireUIPlugin extends AbstractUIPlugin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
+	 * 
+	 * @see
+	 * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext
+	 * )
 	 */
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
@@ -32,7 +37,10 @@ public class RequireUIPlugin extends AbstractUIPlugin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
+	 * 
+	 * @see
+	 * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext
+	 * )
 	 */
 	public void stop(BundleContext context) throws Exception {
 		plugin = null;
@@ -41,7 +49,7 @@ public class RequireUIPlugin extends AbstractUIPlugin {
 
 	/**
 	 * Returns the shared instance
-	 *
+	 * 
 	 * @return the shared instance
 	 */
 	public static RequireUIPlugin getDefault() {
@@ -49,13 +57,34 @@ public class RequireUIPlugin extends AbstractUIPlugin {
 	}
 
 	/**
-	 * Returns an image descriptor for the image file at the given
-	 * plug-in relative path
-	 *
-	 * @param path the path
+	 * Returns an image descriptor for the image file at the given plug-in
+	 * relative path
+	 * 
+	 * @param path
+	 *            the path
 	 * @return the image descriptor
 	 */
 	public static ImageDescriptor getImageDescriptor(String path) {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
+	}
+
+	public static void log(Throwable t) {
+		log(t.getMessage(), t);
+	}
+
+	public static void log(String message, Throwable t) {
+		getDefault().getLog().log(createStatus(message, t));
+	}
+
+	public static IStatus createStatus(String message) {
+		return createStatus(message, null);
+	}
+
+	public static IStatus createStatus(Throwable t) {
+		return createStatus(t.getMessage(), t);
+	}
+
+	public static IStatus createStatus(String message, Throwable t) {
+		return new Status(Status.ERROR, PLUGIN_ID, message, t);
 	}
 }

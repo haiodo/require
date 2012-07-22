@@ -4,10 +4,28 @@
    <extension
          point="org.eclipse.emf.ecore.generated_package">
       <package
-            class="org.eclipse.require.core.configuration.ConfigurationPackage"
+            class="org.eclipse.require.core.model.ConfigurationPackage"
             genModel="/model/RequireConfiguration.genmodel"
-            uri="http:///org/eclipse/require/core/configuration.ecore">
+            uri="http://org.eclipse.require/1.0">
       </package>
+      <package
+            class="org.eclipse.require.core.model.commands.CommandsPackage"
+            genModel="/model/RequireConfiguration.genmodel"
+            uri="http://org.eclipse.require.commands/1.0">
+      </package>
+   </extension>
+   <extension
+         point="org.eclipse.ecl.core.scriptlet">
+      <scriptlet
+            class="org.eclipse.require.core.commands.RequireFindProjectsService"
+            name="RequireFindProjects"
+            namespace="http://org.eclipse.require.commands/1.0">
+      </scriptlet>
+      <scriptlet
+            class="org.eclipse.require.core.commands.RequireImportService"
+            name="RequireImport"
+            namespace="http://org.eclipse.require.commands/1.0">
+      </scriptlet>
    </extension>
 
 </plugin>
