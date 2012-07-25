@@ -132,22 +132,31 @@ public interface CommandsPackage extends EPackage {
 	int REQUIRE_IMPORT__BINDINGS = CorePackage.COMMAND__BINDINGS;
 
 	/**
-	 * The feature id for the '<em><b>Path</b></em>' attribute list.
+	 * The feature id for the '<em><b>Projects</b></em>' reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int REQUIRE_IMPORT__PATH = CorePackage.COMMAND_FEATURE_COUNT + 0;
+	int REQUIRE_IMPORT__PROJECTS = CorePackage.COMMAND_FEATURE_COUNT + 0;
 
 	/**
-	 * The feature id for the '<em><b>Matches</b></em>' attribute list.
+	 * The feature id for the '<em><b>Pattern</b></em>' attribute list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int REQUIRE_IMPORT__MATCHES = CorePackage.COMMAND_FEATURE_COUNT + 1;
+	int REQUIRE_IMPORT__PATTERN = CorePackage.COMMAND_FEATURE_COUNT + 1;
+
+	/**
+	 * The feature id for the '<em><b>Overwrite</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int REQUIRE_IMPORT__OVERWRITE = CorePackage.COMMAND_FEATURE_COUNT + 2;
 
 	/**
 	 * The number of structural features of the '<em>Require Import</em>' class.
@@ -156,7 +165,7 @@ public interface CommandsPackage extends EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int REQUIRE_IMPORT_FEATURE_COUNT = CorePackage.COMMAND_FEATURE_COUNT + 2;
+	int REQUIRE_IMPORT_FEATURE_COUNT = CorePackage.COMMAND_FEATURE_COUNT + 3;
 
 
 	/**
@@ -191,26 +200,37 @@ public interface CommandsPackage extends EPackage {
 	EClass getRequireImport();
 
 	/**
-	 * Returns the meta object for the attribute list '{@link org.eclipse.require.core.model.commands.RequireImport#getPath <em>Path</em>}'.
+	 * Returns the meta object for the reference list '{@link org.eclipse.require.core.model.commands.RequireImport#getProjects <em>Projects</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute list '<em>Path</em>'.
-	 * @see org.eclipse.require.core.model.commands.RequireImport#getPath()
+	 * @return the meta object for the reference list '<em>Projects</em>'.
+	 * @see org.eclipse.require.core.model.commands.RequireImport#getProjects()
 	 * @see #getRequireImport()
 	 * @generated
 	 */
-	EAttribute getRequireImport_Path();
+	EReference getRequireImport_Projects();
 
 	/**
-	 * Returns the meta object for the attribute list '{@link org.eclipse.require.core.model.commands.RequireImport#getMatches <em>Matches</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.require.core.model.commands.RequireImport#isOverwrite <em>Overwrite</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute list '<em>Matches</em>'.
-	 * @see org.eclipse.require.core.model.commands.RequireImport#getMatches()
+	 * @return the meta object for the attribute '<em>Overwrite</em>'.
+	 * @see org.eclipse.require.core.model.commands.RequireImport#isOverwrite()
 	 * @see #getRequireImport()
 	 * @generated
 	 */
-	EAttribute getRequireImport_Matches();
+	EAttribute getRequireImport_Overwrite();
+
+	/**
+	 * Returns the meta object for the attribute list '{@link org.eclipse.require.core.model.commands.RequireImport#getPattern <em>Pattern</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute list '<em>Pattern</em>'.
+	 * @see org.eclipse.require.core.model.commands.RequireImport#getPattern()
+	 * @see #getRequireImport()
+	 * @generated
+	 */
+	EAttribute getRequireImport_Pattern();
 
 	/**
 	 * Returns the factory that creates the instances of the model.
@@ -263,20 +283,28 @@ public interface CommandsPackage extends EPackage {
 		EClass REQUIRE_IMPORT = eINSTANCE.getRequireImport();
 
 		/**
-		 * The meta object literal for the '<em><b>Path</b></em>' attribute list feature.
+		 * The meta object literal for the '<em><b>Projects</b></em>' reference list feature.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
 		 * @generated
 		 */
-		EAttribute REQUIRE_IMPORT__PATH = eINSTANCE.getRequireImport_Path();
+		EReference REQUIRE_IMPORT__PROJECTS = eINSTANCE.getRequireImport_Projects();
 
 		/**
-		 * The meta object literal for the '<em><b>Matches</b></em>' attribute list feature.
+		 * The meta object literal for the '<em><b>Overwrite</b></em>' attribute feature.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
 		 * @generated
 		 */
-		EAttribute REQUIRE_IMPORT__MATCHES = eINSTANCE.getRequireImport_Matches();
+		EAttribute REQUIRE_IMPORT__OVERWRITE = eINSTANCE.getRequireImport_Overwrite();
+
+		/**
+		 * The meta object literal for the '<em><b>Pattern</b></em>' attribute list feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute REQUIRE_IMPORT__PATTERN = eINSTANCE.getRequireImport_Pattern();
 
 	}
 

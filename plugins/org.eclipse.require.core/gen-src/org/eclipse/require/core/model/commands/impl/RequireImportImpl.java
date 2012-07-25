@@ -6,12 +6,17 @@ import java.util.Collection;
 
 import org.eclipse.ecl.core.impl.CommandImpl;
 
+import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.util.EList;
 
 import org.eclipse.emf.ecore.EClass;
 
+import org.eclipse.emf.ecore.InternalEObject;
+import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.util.EDataTypeUniqueEList;
 
+import org.eclipse.emf.ecore.util.EObjectResolvingEList;
+import org.eclipse.require.core.model.RequireProject;
 import org.eclipse.require.core.model.commands.CommandsPackage;
 import org.eclipse.require.core.model.commands.RequireImport;
 
@@ -22,8 +27,9 @@ import org.eclipse.require.core.model.commands.RequireImport;
  * <p>
  * The following features are implemented:
  * <ul>
- *   <li>{@link org.eclipse.require.core.model.commands.impl.RequireImportImpl#getPath <em>Path</em>}</li>
- *   <li>{@link org.eclipse.require.core.model.commands.impl.RequireImportImpl#getMatches <em>Matches</em>}</li>
+ *   <li>{@link org.eclipse.require.core.model.commands.impl.RequireImportImpl#getProjects <em>Projects</em>}</li>
+ *   <li>{@link org.eclipse.require.core.model.commands.impl.RequireImportImpl#getPattern <em>Pattern</em>}</li>
+ *   <li>{@link org.eclipse.require.core.model.commands.impl.RequireImportImpl#isOverwrite <em>Overwrite</em>}</li>
  * </ul>
  * </p>
  *
@@ -31,24 +37,44 @@ import org.eclipse.require.core.model.commands.RequireImport;
  */
 public class RequireImportImpl extends CommandImpl implements RequireImport {
 	/**
-	 * The cached value of the '{@link #getPath() <em>Path</em>}' attribute list.
+	 * The cached value of the '{@link #getProjects() <em>Projects</em>}' reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #getPath()
+	 * @see #getProjects()
 	 * @generated
 	 * @ordered
 	 */
-	protected EList<String> path;
+	protected EList<RequireProject> projects;
 
 	/**
-	 * The cached value of the '{@link #getMatches() <em>Matches</em>}' attribute list.
+	 * The cached value of the '{@link #getPattern() <em>Pattern</em>}' attribute list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #getMatches()
+	 * @see #getPattern()
 	 * @generated
 	 * @ordered
 	 */
-	protected EList<String> matches;
+	protected EList<String> pattern;
+
+	/**
+	 * The default value of the '{@link #isOverwrite() <em>Overwrite</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isOverwrite()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final boolean OVERWRITE_EDEFAULT = true;
+
+	/**
+	 * The cached value of the '{@link #isOverwrite() <em>Overwrite</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isOverwrite()
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean overwrite = OVERWRITE_EDEFAULT;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -74,11 +100,11 @@ public class RequireImportImpl extends CommandImpl implements RequireImport {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public EList<String> getPath() {
-		if (path == null) {
-			path = new EDataTypeUniqueEList<String>(String.class, this, CommandsPackage.REQUIRE_IMPORT__PATH);
+	public EList<RequireProject> getProjects() {
+		if (projects == null) {
+			projects = new EObjectResolvingEList<RequireProject>(RequireProject.class, this, CommandsPackage.REQUIRE_IMPORT__PROJECTS);
 		}
-		return path;
+		return projects;
 	}
 
 	/**
@@ -86,11 +112,32 @@ public class RequireImportImpl extends CommandImpl implements RequireImport {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public EList<String> getMatches() {
-		if (matches == null) {
-			matches = new EDataTypeUniqueEList<String>(String.class, this, CommandsPackage.REQUIRE_IMPORT__MATCHES);
+	public boolean isOverwrite() {
+		return overwrite;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public void setOverwrite(boolean newOverwrite) {
+		boolean oldOverwrite = overwrite;
+		overwrite = newOverwrite;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, CommandsPackage.REQUIRE_IMPORT__OVERWRITE, oldOverwrite, overwrite));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EList<String> getPattern() {
+		if (pattern == null) {
+			pattern = new EDataTypeUniqueEList<String>(String.class, this, CommandsPackage.REQUIRE_IMPORT__PATTERN);
 		}
-		return matches;
+		return pattern;
 	}
 
 	/**
@@ -101,10 +148,12 @@ public class RequireImportImpl extends CommandImpl implements RequireImport {
 	@Override
 	public Object eGet(int featureID, boolean resolve, boolean coreType) {
 		switch (featureID) {
-			case CommandsPackage.REQUIRE_IMPORT__PATH:
-				return getPath();
-			case CommandsPackage.REQUIRE_IMPORT__MATCHES:
-				return getMatches();
+			case CommandsPackage.REQUIRE_IMPORT__PROJECTS:
+				return getProjects();
+			case CommandsPackage.REQUIRE_IMPORT__PATTERN:
+				return getPattern();
+			case CommandsPackage.REQUIRE_IMPORT__OVERWRITE:
+				return isOverwrite();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -118,13 +167,16 @@ public class RequireImportImpl extends CommandImpl implements RequireImport {
 	@Override
 	public void eSet(int featureID, Object newValue) {
 		switch (featureID) {
-			case CommandsPackage.REQUIRE_IMPORT__PATH:
-				getPath().clear();
-				getPath().addAll((Collection<? extends String>)newValue);
+			case CommandsPackage.REQUIRE_IMPORT__PROJECTS:
+				getProjects().clear();
+				getProjects().addAll((Collection<? extends RequireProject>)newValue);
 				return;
-			case CommandsPackage.REQUIRE_IMPORT__MATCHES:
-				getMatches().clear();
-				getMatches().addAll((Collection<? extends String>)newValue);
+			case CommandsPackage.REQUIRE_IMPORT__PATTERN:
+				getPattern().clear();
+				getPattern().addAll((Collection<? extends String>)newValue);
+				return;
+			case CommandsPackage.REQUIRE_IMPORT__OVERWRITE:
+				setOverwrite((Boolean)newValue);
 				return;
 		}
 		super.eSet(featureID, newValue);
@@ -138,11 +190,14 @@ public class RequireImportImpl extends CommandImpl implements RequireImport {
 	@Override
 	public void eUnset(int featureID) {
 		switch (featureID) {
-			case CommandsPackage.REQUIRE_IMPORT__PATH:
-				getPath().clear();
+			case CommandsPackage.REQUIRE_IMPORT__PROJECTS:
+				getProjects().clear();
 				return;
-			case CommandsPackage.REQUIRE_IMPORT__MATCHES:
-				getMatches().clear();
+			case CommandsPackage.REQUIRE_IMPORT__PATTERN:
+				getPattern().clear();
+				return;
+			case CommandsPackage.REQUIRE_IMPORT__OVERWRITE:
+				setOverwrite(OVERWRITE_EDEFAULT);
 				return;
 		}
 		super.eUnset(featureID);
@@ -156,10 +211,12 @@ public class RequireImportImpl extends CommandImpl implements RequireImport {
 	@Override
 	public boolean eIsSet(int featureID) {
 		switch (featureID) {
-			case CommandsPackage.REQUIRE_IMPORT__PATH:
-				return path != null && !path.isEmpty();
-			case CommandsPackage.REQUIRE_IMPORT__MATCHES:
-				return matches != null && !matches.isEmpty();
+			case CommandsPackage.REQUIRE_IMPORT__PROJECTS:
+				return projects != null && !projects.isEmpty();
+			case CommandsPackage.REQUIRE_IMPORT__PATTERN:
+				return pattern != null && !pattern.isEmpty();
+			case CommandsPackage.REQUIRE_IMPORT__OVERWRITE:
+				return overwrite != OVERWRITE_EDEFAULT;
 		}
 		return super.eIsSet(featureID);
 	}
@@ -174,10 +231,10 @@ public class RequireImportImpl extends CommandImpl implements RequireImport {
 		if (eIsProxy()) return super.toString();
 
 		StringBuffer result = new StringBuffer(super.toString());
-		result.append(" (path: ");
-		result.append(path);
-		result.append(", matches: ");
-		result.append(matches);
+		result.append(" (pattern: ");
+		result.append(pattern);
+		result.append(", overwrite: ");
+		result.append(overwrite);
 		result.append(')');
 		return result.toString();
 	}

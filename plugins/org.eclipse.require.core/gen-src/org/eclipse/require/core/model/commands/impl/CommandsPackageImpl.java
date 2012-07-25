@@ -143,8 +143,8 @@ public class CommandsPackageImpl extends EPackageImpl implements CommandsPackage
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public EAttribute getRequireImport_Path() {
-		return (EAttribute)requireImportEClass.getEStructuralFeatures().get(0);
+	public EReference getRequireImport_Projects() {
+		return (EReference)requireImportEClass.getEStructuralFeatures().get(0);
 	}
 
 	/**
@@ -152,7 +152,16 @@ public class CommandsPackageImpl extends EPackageImpl implements CommandsPackage
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public EAttribute getRequireImport_Matches() {
+	public EAttribute getRequireImport_Overwrite() {
+		return (EAttribute)requireImportEClass.getEStructuralFeatures().get(2);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EAttribute getRequireImport_Pattern() {
 		return (EAttribute)requireImportEClass.getEStructuralFeatures().get(1);
 	}
 
@@ -188,8 +197,9 @@ public class CommandsPackageImpl extends EPackageImpl implements CommandsPackage
 		createEReference(requireFindProjectsEClass, REQUIRE_FIND_PROJECTS__ROOTS);
 
 		requireImportEClass = createEClass(REQUIRE_IMPORT);
-		createEAttribute(requireImportEClass, REQUIRE_IMPORT__PATH);
-		createEAttribute(requireImportEClass, REQUIRE_IMPORT__MATCHES);
+		createEReference(requireImportEClass, REQUIRE_IMPORT__PROJECTS);
+		createEAttribute(requireImportEClass, REQUIRE_IMPORT__PATTERN);
+		createEAttribute(requireImportEClass, REQUIRE_IMPORT__OVERWRITE);
 	}
 
 	/**
@@ -218,6 +228,7 @@ public class CommandsPackageImpl extends EPackageImpl implements CommandsPackage
 		// Obtain other dependent packages
 		CorePackage theCorePackage = (CorePackage)EPackage.Registry.INSTANCE.getEPackage(CorePackage.eNS_URI);
 		EcorePackage theEcorePackage = (EcorePackage)EPackage.Registry.INSTANCE.getEPackage(EcorePackage.eNS_URI);
+		ConfigurationPackage theConfigurationPackage = (ConfigurationPackage)EPackage.Registry.INSTANCE.getEPackage(ConfigurationPackage.eNS_URI);
 
 		// Create type parameters
 
@@ -232,8 +243,9 @@ public class CommandsPackageImpl extends EPackageImpl implements CommandsPackage
 		initEReference(getRequireFindProjects_Roots(), theEcorePackage.getEObject(), null, "roots", null, 0, -1, RequireFindProjects.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(requireImportEClass, RequireImport.class, "RequireImport", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEAttribute(getRequireImport_Path(), theEcorePackage.getEString(), "path", null, 0, -1, RequireImport.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getRequireImport_Matches(), theEcorePackage.getEString(), "matches", null, 0, -1, RequireImport.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getRequireImport_Projects(), theConfigurationPackage.getRequireProject(), null, "projects", null, 0, -1, RequireImport.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRequireImport_Pattern(), theEcorePackage.getEString(), "pattern", null, 0, -1, RequireImport.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRequireImport_Overwrite(), theEcorePackage.getEBoolean(), "overwrite", "true", 0, 1, RequireImport.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		// Create annotations
 		// http://www.eclipse.org/ecl/input
@@ -250,6 +262,11 @@ public class CommandsPackageImpl extends EPackageImpl implements CommandsPackage
 		String source = "http://www.eclipse.org/ecl/input";		
 		addAnnotation
 		  (getRequireFindProjects_Roots(), 
+		   source, 
+		   new String[] {
+		   });		
+		addAnnotation
+		  (getRequireImport_Projects(), 
 		   source, 
 		   new String[] {
 		   });
