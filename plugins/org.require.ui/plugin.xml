@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension-point id="importSourceProvider" name="importSourceProvider" schema="schema/importSourceProvider.exsd"/>
+
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            name="Require Configuration Editor"
+            extensions="require"
+            icon="icons/sample.gif"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            class="org.eclipse.require.ui.editors.config.RequireConfigurationEditor"
+            id="org.eclipse.require.ui.editors.config.RequireConfigurationEditor">
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            id="org.eclipse.require.ui.views"
+            name="Require">
+      </category>
+      <view
+            allowMultiple="false"
+            category="org.eclipse.require.ui.views"
+            class="org.eclipse.require.ui.views.RequireConfigurationView"
+            icon="icons/sample.gif"
+            id="org.eclipse.require.ui.cfgs"
+            name="Require"
+            restorable="true">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="true"
+            id="org.eclipse.require.ui.require"
+            nameFilter="*.require"
+            objectClass="org.eclipse.core.resources.IFile">
+         <action
+               class="org.eclipse.require.ui.actions.ApplyRequire"
+               icon="icons/sample.gif"
+               id="org.eclipse.require.ui.applyConfig"
+               label="Apply Configuration"
+               menubarPath="require">
+         </action>
+      </objectContribution>
+   </extension>
+   <extension
+         point="org.eclipse.emf.ecore.generated_package">
+      <package
+            class="org.eclipse.require.config.model.ModelPackage"
+            genModel="/model/require_config.genmodel"
+            uri="http:///org/eclipse/require/config/model.ecore">
+      </package>
+   </extension>
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <category
+            id="org.require.ui.main.category"
+            name="Require">
+      </category>
+      <wizard
+            category="org.require.ui.main.category"
+            class="org.eclipse.require.ui.wizards.RequireImportWizard"
+            icon="icons/sample.gif"
+            id="org.require.ui.import.wizard"
+            name="Require Import">
+      </wizard>
+   </extension>
+
+</plugin>

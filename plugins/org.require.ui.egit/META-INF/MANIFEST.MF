@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Egit
+Bundle-SymbolicName: org.require.ui.egit;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: org.require.ui.egit.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.ecl.core;bundle-version="1.1.0",
+ org.eclipse.egit.core,
+ org.eclipse.jgit,
+ org.require.ui;bundle-version="1.0.0"
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
