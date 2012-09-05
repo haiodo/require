@@ -3,6 +3,7 @@ package org.require.ui.egit;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.require.ui.IRequireImportLocation;
 import org.eclipse.require.ui.IRequireImportSourceProvider;
+import org.eclipse.swt.graphics.Image;
 
 public class GitRequireImportLocation implements IRequireImportLocation {
 
@@ -13,6 +14,11 @@ public class GitRequireImportLocation implements IRequireImportLocation {
 			Repository repository) {
 		this.provider = provider;
 		this.repository = repository;
+	}
+
+	public Image getImage() {
+		return RequireGitUIPlugin.getDefault().getImage(
+				"icons/repository_rep.gif");
 	}
 
 	public IRequireImportSourceProvider getProvider() {

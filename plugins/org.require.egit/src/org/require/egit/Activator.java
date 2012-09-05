@@ -1,4 +1,4 @@
-package org.eclipse.require.egit;
+package org.require.egit;
 
 import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;

@@ -1,5 +1,7 @@
 package org.eclipse.require.ui;
 
+import org.eclipse.swt.graphics.Image;
+
 public interface IRequireImportLocation {
 	/**
 	 * Return selected location in file system.
@@ -28,4 +30,6 @@ public interface IRequireImportLocation {
 	boolean doBrowse();
 
 	IRequireImportSourceProvider getProvider();
+	
+	Image getImage();
 }
