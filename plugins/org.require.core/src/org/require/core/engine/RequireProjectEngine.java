@@ -12,6 +12,7 @@ import org.eclipse.core.internal.resources.ProjectDescription;
 import org.eclipse.core.internal.resources.ProjectDescriptionReader;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.require.core.RequireCorePlugin;
 import org.require.core.model.ConfigurationFactory;
@@ -19,12 +20,15 @@ import org.require.core.model.RequireProject;
 import org.xml.sax.InputSource;
 
 public class RequireProjectEngine {
-	public static List<RequireProject> findDotProjects(final String basePath) {
+	public static List<RequireProject> findDotProjects(final String basePath,
+			final IProgressMonitor monitor) {
 		final int segms = new Path(basePath).segmentCount();
+		monitor.beginTask("Process location:" + basePath, -1);
 		final List<RequireProject> result = new ArrayList<RequireProject>();
 		traverseFolders(new File(basePath), new ITraverseDirRunner() {
 			@Override
 			public boolean proceed(File dir) {
+				monitor.worked(1);
 				File dotFile = new File(dir, ".project");
 				if (dotFile.exists() && dotFile.isFile()) {
 					checkAddDotProject(dir, dotFile, segms, result);
@@ -32,6 +36,7 @@ public class RequireProjectEngine {
 				return true;
 			}
 		});
+		monitor.done();
 		return result;
 	}
 

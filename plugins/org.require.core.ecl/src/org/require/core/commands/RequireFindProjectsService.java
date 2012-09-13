@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ecl.core.Command;
 import org.eclipse.ecl.runtime.BoxedValues;
@@ -35,7 +36,8 @@ public class RequireFindProjectsService implements ICommandService {
 			Object unbox = BoxedValues.unbox(eObject);
 			if (unbox instanceof String) {
 				List<RequireProject> list = RequireProjectEngine
-						.findDotProjects((String) unbox);
+						.findDotProjects((String) unbox,
+								new NullProgressMonitor());
 				for (RequireProject requireProject : list) {
 					output.write(requireProject);
 				}

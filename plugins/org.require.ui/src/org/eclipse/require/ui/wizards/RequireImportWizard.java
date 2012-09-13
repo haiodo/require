@@ -15,11 +15,19 @@ public class RequireImportWizard extends Wizard implements IImportWizard {
 		this.workbench = workbench;
 		this.input = selection;
 		setWindowTitle("Require import");
+		setNeedsProgressMonitor(true);
 	}
 
 	@Override
 	public void addPages() {
 		addPage(new RequireLocationPage("require.location"));
+		addPage(new ProjectSelectionPage("require.project.select",
+				"Select projects"));
+	}
+
+	@Override
+	public boolean canFinish() {
+		return getPage("require.project.select").isPageComplete();
 	}
 
 	@Override

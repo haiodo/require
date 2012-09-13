@@ -47,6 +47,7 @@ public class RequireLocationPage extends WizardPage {
 
 	@Override
 	public void createControl(Composite parent) {
+		setTitle("Select import points");
 		setDescription("Please select one of require supported locations");
 
 		final List<IRequireImportLocation> locations = new ArrayList<IRequireImportLocation>();
@@ -56,9 +57,10 @@ public class RequireLocationPage extends WizardPage {
 			locations.addAll(provider.getLocations());
 		}
 
-		GridLayoutFactory.swtDefaults().numColumns(1).applyTo(parent);
+		// GridLayoutFactory.swtDefaults().numColumns(1).applyTo(parent);
 		Composite control = new Composite(parent, SWT.NONE);
 		GridLayoutFactory.swtDefaults().numColumns(1).applyTo(control);
+
 		GridDataFactory.fillDefaults().grab(true, true).applyTo(control);
 
 		Text text = new Text(control, SWT.SINGLE | SWT.BORDER | SWT.SEARCH
@@ -71,7 +73,8 @@ public class RequireLocationPage extends WizardPage {
 		GridDataFactory.fillDefaults().grab(true, false).span(2, 1)
 				.applyTo(text);
 
-		final TableViewer table = new TableViewer(control, SWT.MULTI);
+		final TableViewer table = new TableViewer(control, SWT.MULTI
+				| SWT.BORDER);
 
 		text.addKeyListener(new KeyListener() {
 			@Override
@@ -228,5 +231,13 @@ public class RequireLocationPage extends WizardPage {
 			return true;
 		}
 		return false;
+	}
+
+	public List<IRequireImportLocation> getSelection() {
+		List<IRequireImportLocation> result = new ArrayList<IRequireImportLocation>();
+		for (int i = 0; i < checked.size(); i++) {
+			result.add((IRequireImportLocation) checked.get(i));
+		}
+		return result;
 	}
 }
