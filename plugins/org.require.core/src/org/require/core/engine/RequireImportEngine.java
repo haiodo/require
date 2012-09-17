@@ -13,8 +13,10 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubProgressMonitor;
+import org.require.core.RequireCorePlugin;
 import org.require.core.model.RequireProject;
 
 public class RequireImportEngine {
@@ -37,32 +39,46 @@ public class RequireImportEngine {
 				matches.addAll(findProjectMatches(part, newMatches));
 			}
 		}
+		importProjects(matches, new NullProgressMonitor());
+	}
+
+	public List<IProject> importProjects(final List<RequireProject> matches,
+			final IProgressMonitor monitor) throws CoreException {
+		final List<IProject> results = new ArrayList<IProject>();
 		/**
 		 * Import all non exist matched project
 		 */
 		ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
 			@Override
-			public void run(IProgressMonitor monitor) throws CoreException {
-				monitor.beginTask("Import unexisting projects",
-						matches.size() * 2);
+			public void run(IProgressMonitor pMonitor) throws CoreException {
+				monitor.beginTask("Import projects", matches.size() * 10);
 				for (RequireProject matched : matches) {
 					if (matched.getExistingProjectFullPath() == null) {
+						SubProgressMonitor s = new SubProgressMonitor(monitor,
+								10);
 						// Just create new project
-						createProject(monitor, matched);
-						monitor.worked(1);
+						createProject(s, matched);
+						s.done();
 					} else if (!matched.getExistingProjectFullPath().equals(
 							matched.getFullPath())) {
+						SubProgressMonitor smon = new SubProgressMonitor(
+								monitor, 10);
+						smon.beginTask("Replace project:" + matched.getName(),
+								20);
+
 						IProject project = ResourcesPlugin.getWorkspace()
 								.getRoot().getProject(matched.getName());
 						project.delete(false, true, new SubProgressMonitor(
-								null, 1));
-						createProject(monitor, matched);
+								smon, 10));
+						createProject(smon, matched);
+						smon.done();
 					}
 				}
 			}
 
 			private void createProject(IProgressMonitor monitor,
 					RequireProject matched) {
+				monitor.beginTask("Create project - " + matched.getName(), 100);
 				IProject project = ResourcesPlugin.getWorkspace().getRoot()
 						.getProject(matched.getName());
 				if (!project.exists()) {
@@ -72,16 +88,18 @@ public class RequireImportEngine {
 					description.setLocation(new Path(matched.getFullPath()));
 					try {
 						project.create(description, new SubProgressMonitor(
-								monitor, 1));
-						project.open(new SubProgressMonitor(monitor, 1));
+								monitor, 70));
+						project.open(new SubProgressMonitor(monitor, 30));
 						project.refreshLocal(IResource.DEPTH_INFINITE,
-								new SubProgressMonitor(monitor, 1));
+								new SubProgressMonitor(monitor, 10));
+						results.add(project);
 					} catch (CoreException e) {
-						e.printStackTrace();
+						RequireCorePlugin.log(e);
 					}
 				}
 			}
 		}, null);
+		return results;
 	}
 
 	/**

@@ -8,15 +8,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.databinding.DataBindingContext;
+import org.eclipse.core.databinding.observable.ChangeEvent;
+import org.eclipse.core.databinding.observable.IChangeListener;
+import org.eclipse.core.databinding.observable.set.WritableSet;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.jface.databinding.viewers.ViewersObservables;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ICheckStateListener;
+import org.eclipse.jface.viewers.ICheckStateProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
@@ -24,21 +32,26 @@ import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.require.ui.IRequireImportLocation;
+import org.eclipse.require.ui.RequireUIPlugin;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
+import org.require.core.RequireCorePlugin;
 import org.require.core.engine.RequireProjectEngine;
 import org.require.core.model.RequireProject;
 
 public class ProjectSelectionPage extends WizardPage {
-
-	private static final String GROUP_UNDEFINED = "<undefined>";
-	private List<RequireProject> projects = new ArrayList<RequireProject>();
+	private DataBindingContext dbc = new DataBindingContext();
 	private List<RequireProjectGroup> input = new ArrayList<RequireProjectGroup>();
 	private CheckboxTreeViewer tree;
-	private List<IRequireImportLocation> selection;
+	private WritableSet checked = new WritableSet(
+			new ArrayList<TreeRequireElement>(), TreeRequireElement.class);
 
 	public static abstract class TreeRequireElement {
 		private boolean enabled = false;
@@ -54,9 +67,34 @@ public class ProjectSelectionPage extends WizardPage {
 		}
 	}
 
+	public List<RequireProjectGroup> getProjects() {
+		List<RequireProjectGroup> result = new ArrayList<RequireProjectGroup>();
+		for (TreeRequireElement ee : input) {
+			if (ee instanceof RequireProjectGroup) {
+				List<RequireProjectEntry> entries = ((RequireProjectGroup) ee)
+						.getEntries();
+				List<RequireProjectEntry> enabled = new ArrayList<RequireProjectEntry>();
+				for (RequireProjectEntry p : entries) {
+					if (p.isEnabled()) {
+						enabled.add(p);
+					}
+				}
+				if (!enabled.isEmpty()) {
+					RequireProjectGroup gg = new RequireProjectGroup();
+					gg.setName(ee.getName());
+					gg.setEnabled(true);
+					gg.setEntries(enabled);
+					result.add(gg);
+				}
+			}
+		}
+		return result;
+	}
+
 	public static class RequireProjectEntry extends TreeRequireElement {
 		private RequireProject project;
 		private RequireProjectGroup workingSet;
+		private IRequireImportLocation location;
 
 		public RequireProjectEntry(RequireProject prj) {
 			this.project = prj;
@@ -79,6 +117,13 @@ public class ProjectSelectionPage extends WizardPage {
 			return project;
 		}
 
+		public void setLocation(IRequireImportLocation loc) {
+			this.location = loc;
+		}
+
+		public IRequireImportLocation getLocation() {
+			return location;
+		}
 	}
 
 	public static class RequireProjectGroup extends TreeRequireElement {
@@ -113,11 +158,117 @@ public class ProjectSelectionPage extends WizardPage {
 		GridLayoutFactory.swtDefaults().numColumns(1).applyTo(control);
 		GridDataFactory.fillDefaults().grab(true, true).applyTo(control);
 
+		ToolBar tbar = new ToolBar(control, SWT.FLAT);
+		GridDataFactory.fillDefaults().grab(true, false).applyTo(tbar);
+
+		ToolItem checkAll = new ToolItem(tbar, SWT.FLAT);
+		checkAll.setImage(RequireUIPlugin.getImageDescriptor(
+				"icons/checkAll.png").createImage());
+		checkAll.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				for (TreeRequireElement ee : input) {
+					ee.setEnabled(true);
+					checked.add(ee);
+					if (ee instanceof RequireProjectGroup) {
+						List<RequireProjectEntry> entries = ((RequireProjectGroup) ee)
+								.getEntries();
+						for (RequireProjectEntry p : entries) {
+							p.setEnabled(true);
+						}
+						checked.addAll(entries);
+					}
+				}
+				tree.refresh();
+			}
+		});
+
+		ToolItem uncheckAll = new ToolItem(tbar, SWT.FLAT);
+		uncheckAll.setImage(RequireUIPlugin.getImageDescriptor(
+				"icons/uncheckAll.png").createImage());
+		uncheckAll.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				for (TreeRequireElement ee : input) {
+					ee.setEnabled(false);
+					checked.remove(ee);
+					if (ee instanceof RequireProjectGroup) {
+						List<RequireProjectEntry> entries = ((RequireProjectGroup) ee)
+								.getEntries();
+						for (RequireProjectEntry p : entries) {
+							p.setEnabled(false);
+						}
+						checked.removeAll(entries);
+					}
+				}
+				tree.refresh();
+			}
+		});
+
 		tree = new CheckboxTreeViewer(control, SWT.MULTI | SWT.BORDER);
 		GridDataFactory.fillDefaults().grab(true, true).hint(600, 300)
 				.applyTo(tree.getControl());
 
+		tree.setCheckStateProvider(new ICheckStateProvider() {
+			@Override
+			public boolean isGrayed(Object element) {
+				if (element instanceof RequireProjectGroup) {
+					List<RequireProjectEntry> entries = ((RequireProjectGroup) element)
+							.getEntries();
+					boolean a = false;
+					boolean b = false;
+					for (RequireProjectEntry e : entries) {
+						if (e.isEnabled()) {
+							a = true;
+						}
+						if (!e.isEnabled()) {
+							b = true;
+						}
+					}
+					return a && b;
+				}
+				return false;
+			}
+
+			@Override
+			public boolean isChecked(Object element) {
+				return ((TreeRequireElement) element).isEnabled();
+			}
+		});
+
 		tree.getTree().setHeaderVisible(true);
+		tree.addCheckStateListener(new ICheckStateListener() {
+			@Override
+			public void checkStateChanged(CheckStateChangedEvent event) {
+				TreeRequireElement element = (TreeRequireElement) event
+						.getElement();
+				element.setEnabled(event.getChecked());
+				if (element instanceof RequireProjectGroup) {
+					for (RequireProjectEntry e : ((RequireProjectGroup) element)
+							.getEntries()) {
+						e.setEnabled(event.getChecked());
+					}
+					checked.addAll(((RequireProjectGroup) element).getEntries());
+				}
+				tree.refresh();
+			}
+		});
+		dbc.bindSet(ViewersObservables.observeCheckedElements(tree,
+				TreeRequireElement.class), checked);
+
+		checked.addChangeListener(new IChangeListener() {
+			@Override
+			public void handleChange(ChangeEvent event) {
+				boolean hasEnabledProject = false;
+				for (Object e : checked.toArray()) {
+					if (e instanceof RequireProjectEntry) {
+						hasEnabledProject = true;
+						break;
+					}
+				}
+				setPageComplete(hasEnabledProject);
+			}
+		});
 
 		TreeViewerColumn name = new TreeViewerColumn(tree, SWT.NONE);
 		name.getColumn().setText("Name");
@@ -137,7 +288,7 @@ public class ProjectSelectionPage extends WizardPage {
 					return PlatformUI.getWorkbench().getSharedImages()
 							.getImage(ISharedImages.IMG_OBJ_FOLDER);
 				}
-				if (element instanceof RequireProject) {
+				if (element instanceof RequireProjectEntry) {
 					if (((RequireProjectEntry) element).project
 							.getExistingProjectFullPath() != null) {
 						return PlatformUI
@@ -171,8 +322,6 @@ public class ProjectSelectionPage extends WizardPage {
 				return "";
 			}
 		});
-
-		name.setEditingSupport(new CheckBoxEditingSupport(tree));
 
 		// Working set column
 		TreeViewerColumn workingSet = new TreeViewerColumn(tree, SWT.NONE);
@@ -232,7 +381,7 @@ public class ProjectSelectionPage extends WizardPage {
 			@Override
 			public Object[] getElements(Object inputElement) {
 				if (inputElement instanceof List) {
-					return ((List) inputElement).toArray();
+					return ((List<?>) inputElement).toArray();
 				}
 				if (inputElement instanceof RequireProjectGroup) {
 					return ((RequireProjectGroup) inputElement).getEntries()
@@ -272,32 +421,39 @@ public class ProjectSelectionPage extends WizardPage {
 				}
 			});
 		} catch (Throwable e) {
-			e.printStackTrace();
+			RequireCorePlugin.log(e);
 		}
 	}
 
 	public void setLocation(List<IRequireImportLocation> selection,
 			IProgressMonitor monitor) {
-		this.selection = selection;
+
+		input.clear();
 		monitor.beginTask("Find projects", selection.size() * 10 + 10);
 
-		RequireProjectGroup undefined = new RequireProjectGroup();
-		undefined.setName(GROUP_UNDEFINED);
-		input.add(undefined);
-		undefined
-				.setEntries(new ArrayList<ProjectSelectionPage.RequireProjectEntry>());
-
 		for (IRequireImportLocation loc : selection) {
+			RequireProjectGroup locGroup = new RequireProjectGroup();
+			locGroup.setName(loc.getName());
+			input.add(locGroup);
+			locGroup.setEntries(new ArrayList<ProjectSelectionPage.RequireProjectEntry>());
+
 			SubProgressMonitor sub = new SubProgressMonitor(monitor, 10);
 			List<RequireProject> list = RequireProjectEngine.findDotProjects(
 					loc.getLocation(), sub);
 			for (RequireProject project : list) {
 				RequireProjectEntry e = new RequireProjectEntry(project);
 				if (project.getExistingProjectFullPath() == null) {
-					e.setEnabled(true);
+					e.setEnabled(false);
+				} else {
+					if (project.getExistingProjectFullPath().equals(
+							project.getFullPath())) {
+						// skip already existing projects
+						continue;
+					}
 				}
-				undefined.getEntries().add(e);
-				e.setWorkingSet(undefined);
+				e.setLocation(loc);
+				locGroup.getEntries().add(e);
+				e.setWorkingSet(locGroup);
 			}
 			monitor.worked(10);
 		}
@@ -309,7 +465,7 @@ public class ProjectSelectionPage extends WizardPage {
 				@Override
 				public void run() {
 					tree.refresh();
-					tree.expandAll();
+					tree.collapseAll();
 				}
 			});
 		}
@@ -323,8 +479,12 @@ public class ProjectSelectionPage extends WizardPage {
 		Map<IPath, List<RequireProjectEntry>> prefixes = new HashMap<IPath, List<RequireProjectEntry>>();
 		for (RequireProjectGroup group : workingSets) {
 			for (RequireProjectEntry prj : group.getEntries()) {
-				IPath path = new Path(prj.project.getPath())
-						.removeLastSegments(1);
+				IPath path = new Path(prj.getLocation().getName())
+						.append(new Path(prj.project.getPath())
+								.removeLastSegments(1));
+				if (path.lastSegment().equals("plugins")) {
+					path = path.removeLastSegments(1);
+				}
 				if (prefixes.containsKey(path)) {
 					prefixes.get(path).add(prj);
 				} else {
@@ -332,12 +492,13 @@ public class ProjectSelectionPage extends WizardPage {
 					np.add(prj);
 					prefixes.put(path, np);
 				}
+				// Add top location if not existed
+				IPath locPath = new Path(prj.getLocation().getName());
+				if (!prefixes.containsKey(locPath)) {
+					prefixes.put(locPath, new ArrayList<RequireProjectEntry>());
+				}
 			}
 		}
-		RequireProjectGroup unspecified = new RequireProjectGroup();
-		unspecified.setName(GROUP_UNDEFINED);
-		unspecified
-				.setEntries(new ArrayList<ProjectSelectionPage.RequireProjectEntry>());
 		// Reduce groups
 		loop: while (true) {
 			List<IPath> keys = new ArrayList<IPath>(prefixes.keySet());
@@ -358,8 +519,6 @@ public class ProjectSelectionPage extends WizardPage {
 							.getKey().removeLastSegments(1));
 					if (parent != null) {
 						parent.addAll(list);
-					} else {
-						unspecified.getEntries().addAll(list);
 					}
 					prefixes.remove(path.getKey());
 					continue loop;
@@ -378,9 +537,6 @@ public class ProjectSelectionPage extends WizardPage {
 			for (RequireProjectEntry prj : path.getValue()) {
 				prj.setWorkingSet(gr);
 			}
-		}
-		if (unspecified.getEntries().size() > 0) {
-			workingSets.add(unspecified);
 		}
 	}
 }
