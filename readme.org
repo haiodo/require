@@ -8,10 +8,14 @@ And some other usefull eclipse developer tools.
   - Allow override of working set names, and projects to working set assignements.
   - Allow Import projects from file system.
 
-* New project in git wizards - Project wizard improvement to allow fast new project creation inside git.
+* New project in git wizards
+  Project wizard improvement to allow fast new project creation inside git.
 
 * Target platform tools:
   - Create target platform by target platform DSL.
   - UI for fast target platform switch using Cmd+3.
   - Launch Eclipse Application agains some specified target platform (compile agains selected target platform).
 
+* Easy text editor notes and comparison.
+  - new Empty test editor by shortcut with a way to store file in workspace
+  - easy and fast two way comparison editor with paste to left and right text boxes.
