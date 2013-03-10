@@ -7,15 +7,18 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.observable.ChangeEvent;
 import org.eclipse.core.databinding.observable.IChangeListener;
 import org.eclipse.core.databinding.observable.set.WritableSet;
+import org.eclipse.core.databinding.observable.value.WritableValue;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.databinding.viewers.ViewersObservables;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -38,6 +41,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.ISharedImages;
@@ -52,6 +56,104 @@ public class ProjectSelectionPage extends WizardPage {
 	private CheckboxTreeViewer tree;
 	private WritableSet checked = new WritableSet(
 			new ArrayList<TreeRequireElement>(), TreeRequireElement.class);
+
+	private WritableValue includeFilterValue = new WritableValue("",
+			String.class);
+	private WritableValue excludeFilterValue = new WritableValue("",
+			String.class);
+
+	private final class ProjectsContentProvider implements ITreeContentProvider {
+		@Override
+		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+
+		}
+
+		@Override
+		public void dispose() {
+		}
+
+		@Override
+		public boolean hasChildren(Object element) {
+			if (element instanceof RequireProjectGroup) {
+				return !((RequireProjectGroup) element).getEntries().isEmpty();
+			}
+			return false;
+		}
+
+		@Override
+		public Object getParent(Object element) {
+			return null;
+		}
+
+		@Override
+		public Object[] getElements(Object inputElement) {
+			if (inputElement instanceof List) {
+				return ((List<?>) inputElement).toArray();
+			}
+			if (inputElement instanceof RequireProjectGroup) {
+				return ((RequireProjectGroup) inputElement).getEntries()
+						.toArray();
+			}
+			return null;
+		}
+
+		@Override
+		public Object[] getChildren(Object element) {
+			if (element instanceof RequireProjectGroup) {
+				return ((RequireProjectGroup) element).getEntries().toArray();
+			}
+			return null;
+		}
+	}
+
+	private final class ProjectsComparator extends ViewerComparator {
+		@Override
+		public int compare(Viewer viewer, Object e1, Object e2) {
+			return getText(e1).compareToIgnoreCase(getText(e2));
+		}
+
+		private String getText(Object e1) {
+			if (e1 instanceof TreeRequireElement) {
+				return ((TreeRequireElement) e1).getName();
+			}
+			return "";
+		}
+	}
+
+	private final class ProjectsLabelProvider extends ColumnLabelProvider {
+		@Override
+		public String getText(Object element) {
+			if (element instanceof TreeRequireElement) {
+				return ((TreeRequireElement) element).getName();
+			}
+			return super.getText(element);
+		}
+
+		@Override
+		public Image getImage(Object element) {
+			if (element instanceof RequireProjectGroup) {
+				return PlatformUI.getWorkbench().getSharedImages()
+						.getImage(ISharedImages.IMG_OBJ_FOLDER);
+			}
+			if (element instanceof RequireProjectEntry) {
+				if (((RequireProjectEntry) element).project
+						.getExistingProjectFullPath() != null) {
+					return PlatformUI
+							.getWorkbench()
+							.getSharedImages()
+							.getImage(
+									org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT_CLOSED);
+				} else {
+					return PlatformUI
+							.getWorkbench()
+							.getSharedImages()
+							.getImage(
+									org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT);
+				}
+			}
+			return null;
+		}
+	}
 
 	public static abstract class TreeRequireElement {
 		private boolean enabled = false;
@@ -151,110 +253,98 @@ public class ProjectSelectionPage extends WizardPage {
 		super(pageName, title, null);
 	}
 
+	private SelectionAdapter checkAllListener = new SelectionAdapter() {
+		@Override
+		public void widgetSelected(SelectionEvent e) {
+			for (TreeRequireElement ee : input) {
+				ee.setEnabled(true);
+				checked.add(ee);
+				if (ee instanceof RequireProjectGroup) {
+					List<RequireProjectEntry> entries = ((RequireProjectGroup) ee)
+							.getEntries();
+					for (RequireProjectEntry p : entries) {
+						p.setEnabled(true);
+					}
+					checked.addAll(entries);
+				}
+			}
+			tree.refresh();
+		}
+	};
+	private SelectionAdapter uncheckAllListener = new SelectionAdapter() {
+		@Override
+		public void widgetSelected(SelectionEvent e) {
+			for (TreeRequireElement ee : input) {
+				ee.setEnabled(false);
+				checked.remove(ee);
+				if (ee instanceof RequireProjectGroup) {
+					List<RequireProjectEntry> entries = ((RequireProjectGroup) ee)
+							.getEntries();
+					for (RequireProjectEntry p : entries) {
+						p.setEnabled(false);
+					}
+					checked.removeAll(entries);
+				}
+			}
+			tree.refresh();
+		}
+	};
+	private ICheckStateProvider checkStateProvider = new ICheckStateProvider() {
+		@Override
+		public boolean isGrayed(Object element) {
+			if (element instanceof RequireProjectGroup) {
+				List<RequireProjectEntry> entries = ((RequireProjectGroup) element)
+						.getEntries();
+				boolean a = false;
+				boolean b = false;
+				for (RequireProjectEntry e : entries) {
+					if (e.isEnabled()) {
+						a = true;
+					}
+					if (!e.isEnabled()) {
+						b = true;
+					}
+				}
+				return a && b;
+			}
+			return false;
+		}
+
+		@Override
+		public boolean isChecked(Object element) {
+			return ((TreeRequireElement) element).isEnabled();
+		}
+	};
+	private ICheckStateListener checkStateListener = new ICheckStateListener() {
+		@Override
+		public void checkStateChanged(CheckStateChangedEvent event) {
+			TreeRequireElement element = (TreeRequireElement) event
+					.getElement();
+			element.setEnabled(event.getChecked());
+			if (element instanceof RequireProjectGroup) {
+				for (RequireProjectEntry e : ((RequireProjectGroup) element)
+						.getEntries()) {
+					e.setEnabled(event.getChecked());
+				}
+				checked.addAll(((RequireProjectGroup) element).getEntries());
+			}
+			tree.refresh();
+		}
+	};
+
 	@Override
 	public void createControl(Composite parent) {
 		setDescription("Please select importing projects.");
 		Composite control = new Composite(parent, SWT.NONE);
-		GridLayoutFactory.swtDefaults().numColumns(1).applyTo(control);
+		GridLayoutFactory.swtDefaults().numColumns(3).applyTo(control);
 		GridDataFactory.fillDefaults().grab(true, true).applyTo(control);
 
-		ToolBar tbar = new ToolBar(control, SWT.FLAT);
-		GridDataFactory.fillDefaults().grab(true, false).applyTo(tbar);
+		createToolbar(control);
+		createFilters(control);
 
-		ToolItem checkAll = new ToolItem(tbar, SWT.FLAT);
-		checkAll.setImage(RequireUIPlugin.getImageDescriptor(
-				"icons/checkAll.png").createImage());
-		checkAll.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				for (TreeRequireElement ee : input) {
-					ee.setEnabled(true);
-					checked.add(ee);
-					if (ee instanceof RequireProjectGroup) {
-						List<RequireProjectEntry> entries = ((RequireProjectGroup) ee)
-								.getEntries();
-						for (RequireProjectEntry p : entries) {
-							p.setEnabled(true);
-						}
-						checked.addAll(entries);
-					}
-				}
-				tree.refresh();
-			}
-		});
-
-		ToolItem uncheckAll = new ToolItem(tbar, SWT.FLAT);
-		uncheckAll.setImage(RequireUIPlugin.getImageDescriptor(
-				"icons/uncheckAll.png").createImage());
-		uncheckAll.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				for (TreeRequireElement ee : input) {
-					ee.setEnabled(false);
-					checked.remove(ee);
-					if (ee instanceof RequireProjectGroup) {
-						List<RequireProjectEntry> entries = ((RequireProjectGroup) ee)
-								.getEntries();
-						for (RequireProjectEntry p : entries) {
-							p.setEnabled(false);
-						}
-						checked.removeAll(entries);
-					}
-				}
-				tree.refresh();
-			}
-		});
-
-		tree = new CheckboxTreeViewer(control, SWT.MULTI | SWT.BORDER);
-		GridDataFactory.fillDefaults().grab(true, true).hint(600, 300)
-				.applyTo(tree.getControl());
-
-		tree.setCheckStateProvider(new ICheckStateProvider() {
-			@Override
-			public boolean isGrayed(Object element) {
-				if (element instanceof RequireProjectGroup) {
-					List<RequireProjectEntry> entries = ((RequireProjectGroup) element)
-							.getEntries();
-					boolean a = false;
-					boolean b = false;
-					for (RequireProjectEntry e : entries) {
-						if (e.isEnabled()) {
-							a = true;
-						}
-						if (!e.isEnabled()) {
-							b = true;
-						}
-					}
-					return a && b;
-				}
-				return false;
-			}
-
-			@Override
-			public boolean isChecked(Object element) {
-				return ((TreeRequireElement) element).isEnabled();
-			}
-		});
-
-		tree.getTree().setHeaderVisible(true);
-		tree.addCheckStateListener(new ICheckStateListener() {
-			@Override
-			public void checkStateChanged(CheckStateChangedEvent event) {
-				TreeRequireElement element = (TreeRequireElement) event
-						.getElement();
-				element.setEnabled(event.getChecked());
-				if (element instanceof RequireProjectGroup) {
-					for (RequireProjectEntry e : ((RequireProjectGroup) element)
-							.getEntries()) {
-						e.setEnabled(event.getChecked());
-					}
-					checked.addAll(((RequireProjectGroup) element).getEntries());
-				}
-				tree.refresh();
-			}
-		});
-		dbc.bindSet(ViewersObservables.observeCheckedElements(tree,
-				TreeRequireElement.class), checked);
+		createViewer(control, 3);
+		setControl(control);
+		setPageComplete(false);
 
 		checked.addChangeListener(new IChangeListener() {
 			@Override
@@ -269,59 +359,82 @@ public class ProjectSelectionPage extends WizardPage {
 				setPageComplete(hasEnabledProject);
 			}
 		});
+	}
+
+	private void createFilters(Composite control) {
+		Text includeText = new Text(control, SWT.SEARCH);
+		includeText.setToolTipText("Include patterns");
+		GridDataFactory.fillDefaults().grab(true, false).applyTo(includeText);
+		Text excludeText = new Text(control, SWT.SEARCH);
+		GridDataFactory.fillDefaults().grab(true, false).applyTo(excludeText);
+
+		dbc.bindValue(SWTObservables.observeText(includeText, SWT.Modify),
+				includeFilterValue);
+		dbc.bindValue(SWTObservables.observeText(excludeText, SWT.Modify),
+				excludeFilterValue);
+
+		excludeFilterValue.addChangeListener(new IChangeListener() {
+			@Override
+			public void handleChange(ChangeEvent event) {
+				processIncludeExclude();
+			}
+		});
+		includeFilterValue.addChangeListener(new IChangeListener() {
+			@Override
+			public void handleChange(ChangeEvent event) {
+				processIncludeExclude();
+			}
+		});
+	}
+
+	private boolean isMatch(RequireProjectEntry prj, String pattern) {
+		String[] patterns = pattern.split(",");
+		for (String pat : patterns) {
+			if (pat.trim().length() > 0) {
+				String regexp = pat.replace("*", ".*").trim();
+				Pattern compile = Pattern.compile(regexp);
+				if (compile.matcher(prj.getName()).find()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	};
+
+	private void createToolbar(Composite control) {
+		ToolBar tbar = new ToolBar(control, SWT.FLAT);
+		GridDataFactory.fillDefaults().grab(false, false).applyTo(tbar);
+
+		ToolItem checkAll = new ToolItem(tbar, SWT.FLAT);
+		checkAll.setImage(RequireUIPlugin.getImageDescriptor(
+				"icons/checkAll.png").createImage());
+		checkAll.addSelectionListener(checkAllListener);
+
+		ToolItem uncheckAll = new ToolItem(tbar, SWT.FLAT);
+		uncheckAll.setImage(RequireUIPlugin.getImageDescriptor(
+				"icons/uncheckAll.png").createImage());
+		uncheckAll.addSelectionListener(uncheckAllListener);
+	}
+
+	private void createViewer(Composite control, int span) {
+		tree = new CheckboxTreeViewer(control, SWT.MULTI | SWT.BORDER);
+		GridDataFactory.fillDefaults().grab(true, true).span(span, 1)
+				.hint(600, 300).applyTo(tree.getControl());
+
+		tree.setCheckStateProvider(checkStateProvider);
+
+		tree.getTree().setHeaderVisible(true);
+
+		tree.addCheckStateListener(checkStateListener);
+		dbc.bindSet(ViewersObservables.observeCheckedElements(tree,
+				TreeRequireElement.class), checked);
 
 		TreeViewerColumn name = new TreeViewerColumn(tree, SWT.NONE);
 		name.getColumn().setText("Name");
 		name.getColumn().setWidth(300);
-		name.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof TreeRequireElement) {
-					return ((TreeRequireElement) element).getName();
-				}
-				return super.getText(element);
-			}
+		name.setLabelProvider(new ProjectsLabelProvider());
 
-			@Override
-			public Image getImage(Object element) {
-				if (element instanceof RequireProjectGroup) {
-					return PlatformUI.getWorkbench().getSharedImages()
-							.getImage(ISharedImages.IMG_OBJ_FOLDER);
-				}
-				if (element instanceof RequireProjectEntry) {
-					if (((RequireProjectEntry) element).project
-							.getExistingProjectFullPath() != null) {
-						return PlatformUI
-								.getWorkbench()
-								.getSharedImages()
-								.getImage(
-										org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT);
-					} else {
-						return PlatformUI
-								.getWorkbench()
-								.getSharedImages()
-								.getImage(
-										org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT_CLOSED);
-					}
-				}
-				return null;
-			}
-
-		});
-
-		tree.setComparator(new ViewerComparator() {
-			@Override
-			public int compare(Viewer viewer, Object e1, Object e2) {
-				return getText(e1).compareToIgnoreCase(getText(e2));
-			}
-
-			private String getText(Object e1) {
-				if (e1 instanceof TreeRequireElement) {
-					return ((TreeRequireElement) e1).getName();
-				}
-				return "";
-			}
-		});
+		tree.setComparator(new ProjectsComparator());
 
 		// Working set column
 		TreeViewerColumn workingSet = new TreeViewerColumn(tree, SWT.NONE);
@@ -353,58 +466,9 @@ public class ProjectSelectionPage extends WizardPage {
 			}
 		});
 
-		tree.setContentProvider(new ITreeContentProvider() {
-			@Override
-			public void inputChanged(Viewer viewer, Object oldInput,
-					Object newInput) {
-
-			}
-
-			@Override
-			public void dispose() {
-			}
-
-			@Override
-			public boolean hasChildren(Object element) {
-				if (element instanceof RequireProjectGroup) {
-					return !((RequireProjectGroup) element).getEntries()
-							.isEmpty();
-				}
-				return false;
-			}
-
-			@Override
-			public Object getParent(Object element) {
-				return null;
-			}
-
-			@Override
-			public Object[] getElements(Object inputElement) {
-				if (inputElement instanceof List) {
-					return ((List<?>) inputElement).toArray();
-				}
-				if (inputElement instanceof RequireProjectGroup) {
-					return ((RequireProjectGroup) inputElement).getEntries()
-							.toArray();
-				}
-				return null;
-			}
-
-			@Override
-			public Object[] getChildren(Object element) {
-				if (element instanceof RequireProjectGroup) {
-					return ((RequireProjectGroup) element).getEntries()
-							.toArray();
-				}
-				return null;
-			}
-		});
+		tree.setContentProvider(new ProjectsContentProvider());
 
 		tree.setInput(input);
-		tree.expandAll();
-
-		setControl(control);
-		setPageComplete(false);
 	}
 
 	@Override
@@ -447,8 +511,7 @@ public class ProjectSelectionPage extends WizardPage {
 				} else {
 					if (project.getExistingProjectFullPath().equals(
 							project.getFullPath())) {
-						// skip already existing projects
-						continue;
+						e.setEnabled(false);
 					}
 				}
 				e.setLocation(loc);
@@ -465,7 +528,7 @@ public class ProjectSelectionPage extends WizardPage {
 				@Override
 				public void run() {
 					tree.refresh();
-					tree.collapseAll();
+					tree.expandAll();
 				}
 			});
 		}
@@ -510,18 +573,17 @@ public class ProjectSelectionPage extends WizardPage {
 				}
 
 			});
-			for (Map.Entry<IPath, List<RequireProjectEntry>> path : prefixes
-					.entrySet()) {
-				List<RequireProjectEntry> list = path.getValue();
-				if (list.size() < 3) {
+			for (IPath path : keys) {
+				List<RequireProjectEntry> list = prefixes.get(path);
+				if (list.size() == 1) {
 					// reduce list to parent or unspecified
 					List<RequireProjectEntry> parent = prefixes.get(path
-							.getKey().removeLastSegments(1));
+							.removeLastSegments(1));
 					if (parent != null) {
 						parent.addAll(list);
+						prefixes.remove(path);
+						continue loop;
 					}
-					prefixes.remove(path.getKey());
-					continue loop;
 				}
 			}
 			break;
@@ -538,5 +600,43 @@ public class ProjectSelectionPage extends WizardPage {
 				prj.setWorkingSet(gr);
 			}
 		}
+	}
+
+	private void processIncludeExclude() {
+		tree.getControl().getDisplay().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				final String includePattern = (String) includeFilterValue
+						.getValue();
+				final String excludePattern = (String) excludeFilterValue
+						.getValue();
+				for (TreeRequireElement ee : input) {
+					if (ee instanceof RequireProjectGroup) {
+						List<RequireProjectEntry> entries = ((RequireProjectGroup) ee)
+								.getEntries();
+						int enabled = 0;
+						for (RequireProjectEntry p : entries) {
+							if (isMatch(p, excludePattern)) {
+								p.setEnabled(false);
+								tree.setChecked(p, false);
+								checked.remove(p);
+							} else if (isMatch(p, includePattern)) {
+								p.setEnabled(true);
+								tree.setChecked(p, true);
+								checked.add(p);
+							}
+							enabled += p.isEnabled() ? 1 : 0;
+						}
+						if (enabled == entries.size()) {
+							tree.setChecked(ee, true);
+						}
+						if (enabled == 0) {
+							tree.setChecked(ee, false);
+						}
+					}
+				}
+			}
+
+		});
 	}
 }

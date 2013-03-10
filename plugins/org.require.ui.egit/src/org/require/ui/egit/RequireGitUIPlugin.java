@@ -2,6 +2,7 @@ package org.require.ui.egit;
 
 import java.net.URL;
 
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
@@ -70,6 +71,10 @@ public class RequireGitUIPlugin extends AbstractUIPlugin {
 			}
 		}
 		return registry.get(path);
+	}
+
+	public static void log(String msg, Exception e) {
+		getDefault().getLog().log(new Status(Status.ERROR, PLUGIN_ID, msg, e));
 	}
 
 }

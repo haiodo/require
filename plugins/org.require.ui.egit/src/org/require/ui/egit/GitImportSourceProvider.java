@@ -7,7 +7,6 @@ import java.util.List;
 
 import org.eclipse.egit.core.Activator;
 import org.eclipse.egit.core.RepositoryUtil;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jgit.storage.file.FileRepository;
 import org.eclipse.require.ui.IRequireImportLocation;
 import org.eclipse.require.ui.IRequireImportSourceProvider;
@@ -37,8 +36,8 @@ public class GitImportSourceProvider implements IRequireImportSourceProvider {
 								fileRepo));
 					}
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					RequireGitUIPlugin.log("Failed to access git repository: "
+							+ repo, e);
 				}
 			}
 		}

@@ -2,7 +2,6 @@ package org.eclipse.require.ui.wizards;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -26,14 +25,10 @@ import org.require.core.model.RequireProject;
 
 public class RequireImportWizard extends Wizard implements IImportWizard {
 
-	private IWorkbench workbench;
-	private IStructuredSelection input;
 	private ProjectSelectionPage selectionPage;
 
 	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
-		this.workbench = workbench;
-		this.input = selection;
 		setWindowTitle("Require import");
 		setNeedsProgressMonitor(true);
 	}
@@ -85,6 +80,7 @@ public class RequireImportWizard extends Wizard implements IImportWizard {
 							if (set == null) {
 								set = mgr.createWorkingSet(gr.getName(),
 										new IAdaptable[] {});
+								set.setId("org.eclipse.jdt.ui.JavaWorkingSetPage");
 								mgr.addWorkingSet(set);
 							}
 							if (set != null) {
