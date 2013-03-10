@@ -2,16 +2,16 @@ Require
 Is a set of eclipse tools, to help work with a lot of projects.
 And some other usefull eclipse developer tools.
 
-* Project management tools: [2/4]
-  - [X] Importing of projects from git - Feature for easy import of existing projets into workspace.
-  - [X] Create JDT working sets for imported projects.
-  - [] Allow override of working set names, and projects to working set assignements.
-  - [] Allow Import projects from file system.
+* Project management tools:
+  - [DONE] Importing of projects from git - Feature for easy import of existing projets into workspace.
+  - [DONE] Create JDT working sets for imported projects.
+  - Allow override of working set names, and projects to working set assignements.
+  - Allow Import projects from file system.
 
 * New project in git wizards - Project wizard improvement to allow fast new project creation inside git.
 
 * Target platform tools:
-** Create target platform by target platform DSL.
-** UI for fast target platform switch using Cmd+3.
-** Launch Eclipse Application agains some specified target platform (compile agains selected target platform).
+  - Create target platform by target platform DSL.
+  - UI for fast target platform switch using Cmd+3.
+  - Launch Eclipse Application agains some specified target platform (compile agains selected target platform).
 
