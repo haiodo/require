@@ -19,3 +19,6 @@ And some other usefull eclipse developer tools.
 * Easy text editor notes and comparison.
   - new Empty test editor by shortcut with a way to store file in workspace
   - easy and fast two way comparison editor with paste to left and right text boxes.
+
+* Minor enchancement tools
+  - [DONE] Use 'Space' key to check items in tree/table editor.
