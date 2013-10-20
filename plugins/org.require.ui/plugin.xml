@@ -39,4 +39,10 @@
             sequence="M1+4">
       </key>
    </extension>
+  <extension
+        point="org.eclipse.ui.startup">
+     <startup
+           class="org.eclipse.require.internal.ui.RequireToolsStartup">
+     </startup>
+  </extension>
 </plugin>
