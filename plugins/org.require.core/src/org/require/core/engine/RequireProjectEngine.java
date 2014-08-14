@@ -30,6 +30,11 @@ public class RequireProjectEngine {
 			public boolean proceed(File dir) {
 				monitor.worked(1);
 				File dotFile = new File(dir, ".project");
+                if (dir.toString().contains("bin")
+                    || dir.toString().contains("target"))
+                {
+                    return false;
+                }
 				if (dotFile.exists() && dotFile.isFile()) {
 					checkAddDotProject(dir, dotFile, segms, result);
 				}
