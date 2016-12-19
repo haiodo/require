@@ -7,6 +7,6 @@ public class RequireToolsStartup implements IStartup {
 
 	@Override
 	public void earlyStartup() {
-		new ExtraKeysTool().install();
+//		new ExtraKeysTool().install();
 	}
 }
