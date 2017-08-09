@@ -7,9 +7,8 @@ Bundle-ClassPath: .,
  antlr-3.4.jar
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Export-Package: 
- org.require.core,
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: org.require.core,
  org.require.core.engine,
  org.require.core.model,
  org.require.core.model.impl,

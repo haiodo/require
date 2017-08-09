@@ -6,13 +6,16 @@
  */
 package org.require.core.model.impl;
 
+import java.util.Collection;
 import org.eclipse.emf.common.notify.Notification;
 
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.EObjectImpl;
 
+import org.eclipse.emf.ecore.util.EDataTypeUniqueEList;
 import org.require.core.model.ConfigurationPackage;
 import org.require.core.model.RequireProject;
 
@@ -22,14 +25,16 @@ import org.require.core.model.RequireProject;
  * <!-- end-user-doc -->
  * <p>
  * The following features are implemented:
+ * </p>
  * <ul>
  *   <li>{@link org.require.core.model.impl.RequireProjectImpl#getName <em>Name</em>}</li>
  *   <li>{@link org.require.core.model.impl.RequireProjectImpl#getPath <em>Path</em>}</li>
  *   <li>{@link org.require.core.model.impl.RequireProjectImpl#getExistingProjectFullPath <em>Existing Project Full Path</em>}</li>
  *   <li>{@link org.require.core.model.impl.RequireProjectImpl#getFullPath <em>Full Path</em>}</li>
  *   <li>{@link org.require.core.model.impl.RequireProjectImpl#isProjectExists <em>Project Exists</em>}</li>
+ *   <li>{@link org.require.core.model.impl.RequireProjectImpl#getDependencies <em>Dependencies</em>}</li>
+ *   <li>{@link org.require.core.model.impl.RequireProjectImpl#getParentPath <em>Parent Path</em>}</li>
  * </ul>
- * </p>
  *
  * @generated
  */
@@ -133,6 +138,36 @@ public class RequireProjectImpl extends EObjectImpl implements RequireProject {
 	 * @ordered
 	 */
 	protected boolean projectExists = PROJECT_EXISTS_EDEFAULT;
+
+	/**
+	 * The cached value of the '{@link #getDependencies() <em>Dependencies</em>}' attribute list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getDependencies()
+	 * @generated
+	 * @ordered
+	 */
+	protected EList<String> dependencies;
+
+	/**
+	 * The default value of the '{@link #getParentPath() <em>Parent Path</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getParentPath()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String PARENT_PATH_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getParentPath() <em>Parent Path</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getParentPath()
+	 * @generated
+	 * @ordered
+	 */
+	protected String parentPath = PARENT_PATH_EDEFAULT;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -263,6 +298,39 @@ public class RequireProjectImpl extends EObjectImpl implements RequireProject {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	public EList<String> getDependencies() {
+		if (dependencies == null) {
+			dependencies = new EDataTypeUniqueEList<String>(String.class, this, ConfigurationPackage.REQUIRE_PROJECT__DEPENDENCIES);
+		}
+		return dependencies;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String getParentPath() {
+		return parentPath;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public void setParentPath(String newParentPath) {
+		String oldParentPath = parentPath;
+		parentPath = newParentPath;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, ConfigurationPackage.REQUIRE_PROJECT__PARENT_PATH, oldParentPath, parentPath));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
 	@Override
 	public Object eGet(int featureID, boolean resolve, boolean coreType) {
 		switch (featureID) {
@@ -276,6 +344,10 @@ public class RequireProjectImpl extends EObjectImpl implements RequireProject {
 				return getFullPath();
 			case ConfigurationPackage.REQUIRE_PROJECT__PROJECT_EXISTS:
 				return isProjectExists();
+			case ConfigurationPackage.REQUIRE_PROJECT__DEPENDENCIES:
+				return getDependencies();
+			case ConfigurationPackage.REQUIRE_PROJECT__PARENT_PATH:
+				return getParentPath();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -285,6 +357,7 @@ public class RequireProjectImpl extends EObjectImpl implements RequireProject {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public void eSet(int featureID, Object newValue) {
 		switch (featureID) {
@@ -302,6 +375,13 @@ public class RequireProjectImpl extends EObjectImpl implements RequireProject {
 				return;
 			case ConfigurationPackage.REQUIRE_PROJECT__PROJECT_EXISTS:
 				setProjectExists((Boolean)newValue);
+				return;
+			case ConfigurationPackage.REQUIRE_PROJECT__DEPENDENCIES:
+				getDependencies().clear();
+				getDependencies().addAll((Collection<? extends String>)newValue);
+				return;
+			case ConfigurationPackage.REQUIRE_PROJECT__PARENT_PATH:
+				setParentPath((String)newValue);
 				return;
 		}
 		super.eSet(featureID, newValue);
@@ -330,6 +410,12 @@ public class RequireProjectImpl extends EObjectImpl implements RequireProject {
 			case ConfigurationPackage.REQUIRE_PROJECT__PROJECT_EXISTS:
 				setProjectExists(PROJECT_EXISTS_EDEFAULT);
 				return;
+			case ConfigurationPackage.REQUIRE_PROJECT__DEPENDENCIES:
+				getDependencies().clear();
+				return;
+			case ConfigurationPackage.REQUIRE_PROJECT__PARENT_PATH:
+				setParentPath(PARENT_PATH_EDEFAULT);
+				return;
 		}
 		super.eUnset(featureID);
 	}
@@ -352,6 +438,10 @@ public class RequireProjectImpl extends EObjectImpl implements RequireProject {
 				return FULL_PATH_EDEFAULT == null ? fullPath != null : !FULL_PATH_EDEFAULT.equals(fullPath);
 			case ConfigurationPackage.REQUIRE_PROJECT__PROJECT_EXISTS:
 				return projectExists != PROJECT_EXISTS_EDEFAULT;
+			case ConfigurationPackage.REQUIRE_PROJECT__DEPENDENCIES:
+				return dependencies != null && !dependencies.isEmpty();
+			case ConfigurationPackage.REQUIRE_PROJECT__PARENT_PATH:
+				return PARENT_PATH_EDEFAULT == null ? parentPath != null : !PARENT_PATH_EDEFAULT.equals(parentPath);
 		}
 		return super.eIsSet(featureID);
 	}
@@ -376,6 +466,10 @@ public class RequireProjectImpl extends EObjectImpl implements RequireProject {
 		result.append(fullPath);
 		result.append(", projectExists: ");
 		result.append(projectExists);
+		result.append(", dependencies: ");
+		result.append(dependencies);
+		result.append(", parentPath: ");
+		result.append(parentPath);
 		result.append(')');
 		return result.toString();
 	}

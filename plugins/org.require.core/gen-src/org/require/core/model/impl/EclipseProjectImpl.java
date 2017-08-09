@@ -22,10 +22,10 @@ import org.require.core.model.EclipseProject;
  * <!-- end-user-doc -->
  * <p>
  * The following features are implemented:
+ * </p>
  * <ul>
  *   <li>{@link org.require.core.model.impl.EclipseProjectImpl#getProject <em>Project</em>}</li>
  * </ul>
- * </p>
  *
  * @generated
  */

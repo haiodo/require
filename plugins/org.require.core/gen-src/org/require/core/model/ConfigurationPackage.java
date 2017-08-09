@@ -114,13 +114,31 @@ public interface ConfigurationPackage extends EPackage {
 	int REQUIRE_PROJECT__PROJECT_EXISTS = 4;
 
 	/**
+	 * The feature id for the '<em><b>Dependencies</b></em>' attribute list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int REQUIRE_PROJECT__DEPENDENCIES = 5;
+
+	/**
+	 * The feature id for the '<em><b>Parent Path</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int REQUIRE_PROJECT__PARENT_PATH = 6;
+
+	/**
 	 * The number of structural features of the '<em>Require Project</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int REQUIRE_PROJECT_FEATURE_COUNT = 5;
+	int REQUIRE_PROJECT_FEATURE_COUNT = 7;
 
 	/**
 	 * The meta object id for the '{@link org.require.core.model.impl.EclipseProjectImpl <em>Eclipse Project</em>}' class.
@@ -217,6 +235,28 @@ public interface ConfigurationPackage extends EPackage {
 	EAttribute getRequireProject_ProjectExists();
 
 	/**
+	 * Returns the meta object for the attribute list '{@link org.require.core.model.RequireProject#getDependencies <em>Dependencies</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute list '<em>Dependencies</em>'.
+	 * @see org.require.core.model.RequireProject#getDependencies()
+	 * @see #getRequireProject()
+	 * @generated
+	 */
+	EAttribute getRequireProject_Dependencies();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.require.core.model.RequireProject#getParentPath <em>Parent Path</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Parent Path</em>'.
+	 * @see org.require.core.model.RequireProject#getParentPath()
+	 * @see #getRequireProject()
+	 * @generated
+	 */
+	EAttribute getRequireProject_ParentPath();
+
+	/**
 	 * Returns the meta object for class '{@link org.require.core.model.EclipseProject <em>Eclipse Project</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -308,6 +348,22 @@ public interface ConfigurationPackage extends EPackage {
 		 * @generated
 		 */
 		EAttribute REQUIRE_PROJECT__PROJECT_EXISTS = eINSTANCE.getRequireProject_ProjectExists();
+
+		/**
+		 * The meta object literal for the '<em><b>Dependencies</b></em>' attribute list feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute REQUIRE_PROJECT__DEPENDENCIES = eINSTANCE.getRequireProject_Dependencies();
+
+		/**
+		 * The meta object literal for the '<em><b>Parent Path</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute REQUIRE_PROJECT__PARENT_PATH = eINSTANCE.getRequireProject_ParentPath();
 
 		/**
 		 * The meta object literal for the '{@link org.require.core.model.impl.EclipseProjectImpl <em>Eclipse Project</em>}' class.

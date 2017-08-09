@@ -162,6 +162,24 @@ public class ConfigurationPackageImpl extends EPackageImpl implements Configurat
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	public EAttribute getRequireProject_Dependencies() {
+		return (EAttribute)requireProjectEClass.getEStructuralFeatures().get(5);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EAttribute getRequireProject_ParentPath() {
+		return (EAttribute)requireProjectEClass.getEStructuralFeatures().get(6);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
 	public EClass getEclipseProject() {
 		return eclipseProjectEClass;
 	}
@@ -209,6 +227,8 @@ public class ConfigurationPackageImpl extends EPackageImpl implements Configurat
 		createEAttribute(requireProjectEClass, REQUIRE_PROJECT__EXISTING_PROJECT_FULL_PATH);
 		createEAttribute(requireProjectEClass, REQUIRE_PROJECT__FULL_PATH);
 		createEAttribute(requireProjectEClass, REQUIRE_PROJECT__PROJECT_EXISTS);
+		createEAttribute(requireProjectEClass, REQUIRE_PROJECT__DEPENDENCIES);
+		createEAttribute(requireProjectEClass, REQUIRE_PROJECT__PARENT_PATH);
 
 		eclipseProjectEClass = createEClass(ECLIPSE_PROJECT);
 		createEAttribute(eclipseProjectEClass, ECLIPSE_PROJECT__PROJECT);
@@ -253,6 +273,8 @@ public class ConfigurationPackageImpl extends EPackageImpl implements Configurat
 		initEAttribute(getRequireProject_ExistingProjectFullPath(), ecorePackage.getEString(), "existingProjectFullPath", null, 0, 1, RequireProject.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getRequireProject_FullPath(), ecorePackage.getEString(), "fullPath", null, 0, 1, RequireProject.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getRequireProject_ProjectExists(), theEcorePackage.getEBoolean(), "projectExists", null, 0, 1, RequireProject.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRequireProject_Dependencies(), theEcorePackage.getEString(), "dependencies", null, 0, -1, RequireProject.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRequireProject_ParentPath(), ecorePackage.getEString(), "parentPath", null, 0, 1, RequireProject.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(eclipseProjectEClass, EclipseProject.class, "EclipseProject", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getEclipseProject_Project(), ecorePackage.getEJavaObject(), "project", null, 0, 1, EclipseProject.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);

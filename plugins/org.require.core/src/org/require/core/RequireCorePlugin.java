@@ -56,8 +56,11 @@ public class RequireCorePlugin extends Plugin {
 	}
 
 	public static void log(Throwable e) {
-		getDefault().getLog().log(
-				new Status(IStatus.ERROR, PLUGIN_ID, e.getMessage(), e));
+		if (getDefault() != null) {
+			getDefault().getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, e.getMessage(), e));
+		} else {
+			e.printStackTrace();
+		}
 	}
 
 	public static void log(String msg, Throwable e) {

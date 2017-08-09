@@ -15,10 +15,10 @@ import org.eclipse.emf.ecore.EObject;
  *
  * <p>
  * The following features are supported:
+ * </p>
  * <ul>
  *   <li>{@link org.require.core.model.EclipseProject#getProject <em>Project</em>}</li>
  * </ul>
- * </p>
  *
  * @see org.require.core.model.ConfigurationPackage#getEclipseProject()
  * @model
