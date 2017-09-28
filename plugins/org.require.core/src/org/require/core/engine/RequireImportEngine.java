@@ -15,219 +15,211 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.require.core.RequireCorePlugin;
 import org.require.core.model.RequireProject;
 
 public class RequireImportEngine {
-	public void importProjects(List<String> path,
-			List<RequireProject> availableProjects) throws CoreException {
-		Set<RequireProject> available = new HashSet<RequireProject>(
-				availableProjects);
-		final List<RequireProject> matches = new ArrayList<RequireProject>();
+    public void importProjects(List<String> path, List<RequireProject> availableProjects) throws CoreException {
+        Set<RequireProject> available = new HashSet<RequireProject>(availableProjects);
+        final List<RequireProject> matches = new ArrayList<RequireProject>();
 
-		for (String part : path) {
-			if (!part.startsWith("-")) {
-				matches.addAll(findProjectMatches(part, available));
-			}
-		}
-		for (String part : path) {
-			if (part.startsWith("-")) {
-				Set<RequireProject> newMatches = new HashSet<RequireProject>();
-				newMatches.addAll(matches);
-				matches.clear();
-				matches.addAll(findProjectMatches(part, newMatches));
-			}
-		}
-		importProjects(matches, new NullProgressMonitor());
-	}
+        for (String part : path) {
+            if (!part.startsWith("-")) {
+                matches.addAll(findProjectMatches(part, available));
+            }
+        }
+        for (String part : path) {
+            if (part.startsWith("-")) {
+                Set<RequireProject> newMatches = new HashSet<RequireProject>();
+                newMatches.addAll(matches);
+                matches.clear();
+                matches.addAll(findProjectMatches(part, newMatches));
+            }
+        }
+        importProjects(matches, new NullProgressMonitor());
+    }
 
-	public List<IProject> importProjects(final List<RequireProject> matches,
-			final IProgressMonitor monitor) throws CoreException {
-		final List<IProject> results = new ArrayList<IProject>();
-		/**
-		 * Import all non exist matched project
-		 */
-		ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-			@Override
-			public void run(IProgressMonitor pMonitor) throws CoreException {
-				monitor.beginTask("Import projects", matches.size() * 10);
-				for (RequireProject matched : matches) {
-					if (matched.getExistingProjectFullPath() == null) {
-						SubProgressMonitor s = new SubProgressMonitor(monitor,
-								10);
-						// Just create new project
-						createProject(s, matched);
-						s.done();
-					} else if (!matched.getExistingProjectFullPath().equals(
-							matched.getFullPath())) {
-						SubProgressMonitor smon = new SubProgressMonitor(
-								monitor, 10);
-						smon.beginTask("Replace project:" + matched.getName(),
-								20);
+    public List<IProject> importProjects(final List<RequireProject> matches, final IProgressMonitor monitor) throws CoreException {
+        final List<IProject> results = new ArrayList<IProject>();
+        /**
+         * Import all non exist matched project
+         */
+        ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+            @Override
+            public void run(IProgressMonitor pMonitor) throws CoreException {
+                monitor.beginTask("Import projects", matches.size() * 10);
+                for (RequireProject matched : matches) {
+                    if (matched.getExistingProjectFullPath() == null) {
+                        SubMonitor s = SubMonitor.convert(monitor, 10);
+                        // Just create new project
+                        createProject(s, matched);
+                        s.done();
+                    } else if (!matched.getExistingProjectFullPath().equals(matched.getFullPath())) {
+                        SubMonitor smon = SubMonitor.convert(monitor, 10);
+                        smon.beginTask("Replace project:" + matched.getName(), 20);
 
-						IProject project = ResourcesPlugin.getWorkspace()
-								.getRoot().getProject(matched.getName());
-						project.delete(false, true, new SubProgressMonitor(
-								smon, 10));
-						createProject(smon, matched);
-						smon.done();
-					}
-				}
-			}
+                        IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(matched.getName());
+                        project.delete(false, true, SubMonitor.convert(smon, 10));
+                        createProject(smon, matched);
+                        smon.done();
+                    }
+                }
+            }
 
-			private void createProject(IProgressMonitor monitor,
-					RequireProject matched) {
-				monitor.beginTask("Create project - " + matched.getName(), 100);
-				IProject project = ResourcesPlugin.getWorkspace().getRoot()
-						.getProject(matched.getName());
-				if (!project.exists()) {
-					IProjectDescription description = ResourcesPlugin
-							.getWorkspace().newProjectDescription(
-									matched.getName());
-					description.setLocation(new Path(matched.getFullPath()));
-					try {
-						project.create(description, new SubProgressMonitor(
-								monitor, 70));
-						project.open(new SubProgressMonitor(monitor, 30));
-						project.refreshLocal(IResource.DEPTH_INFINITE,
-								new SubProgressMonitor(monitor, 10));
-						results.add(project);
-					} catch (CoreException e) {
-						RequireCorePlugin.log(e);
-					}
-				}
-			}
-		}, null);
-		return results;
-	}
+            private void createProject(IProgressMonitor monitor, RequireProject matched) {
+                monitor.beginTask("Create project - " + matched.getName(), 101);
+                IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(matched.getName());
+                if (project.exists()) {
+                    try {
+                        project.delete(false, true, SubMonitor.convert(monitor, 1));
+                    } catch (CoreException e) {
+                    }
+                } else {
+                    monitor.worked(1);
+                }
+                if (!project.exists()) {
+                    IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(matched.getName());
+                    description.setLocation(new Path(matched.getFullPath()));
+                    try {
+                        project.create(description, SubMonitor.convert(monitor, 70));
+                        project.open(SubMonitor.convert(monitor, 30));
+                        project.refreshLocal(IResource.DEPTH_INFINITE, SubMonitor.convert(monitor, 10));
+                        results.add(project);
+                    } catch (CoreException e) {
+                        RequireCorePlugin.log(e);
+                    }
+                }
+            }
+        }, null);
+        return results;
+    }
 
-	/**
-	 * Allow following matching scenarious:
-	 * 
-	 * 1) a/b/c/d a/b/c is treated as path. and last d is treated as plugin
-	 * name.
-	 * 
-	 * 2) a is treated as plugin name.
-	 * 
-	 * 3) a* is treadted as wildcard for plugin name
-	 * 
-	 * 4) a/b/c/** is treated all plugins (include subfolders) with path prefix
-	 * a/b/c/
-	 * 
-	 * 5) a/b/c/* is treated as all plugins(exclude subfolders) from folder
-	 * a/b/c/
-	 * 
-	 * 
-	 */
-	public static Set<RequireProject> findProjectMatches(String pattern,
-			Set<RequireProject> availableProjects) {
-		boolean disabledPluginSet = false;
-		// add extra * to end of /
-		if (pattern.endsWith("/")) {
-			pattern = pattern + "*";
-		}
-		if (pattern.startsWith("!")) {
-			disabledPluginSet = true;
-			pattern = pattern.substring(1);
-		}
+    /**
+     * Allow following matching scenarious:
+     * 
+     * 1) a/b/c/d a/b/c is treated as path. and last d is treated as plugin
+     * name.
+     * 
+     * 2) a is treated as plugin name.
+     * 
+     * 3) a* is treadted as wildcard for plugin name
+     * 
+     * 4) a/b/c/** is treated all plugins (include subfolders) with path prefix
+     * a/b/c/
+     * 
+     * 5) a/b/c/* is treated as all plugins(exclude subfolders) from folder
+     * a/b/c/
+     * 
+     * 
+     */
+    public static Set<RequireProject> findProjectMatches(String pattern, Set<RequireProject> availableProjects) {
+        boolean disabledPluginSet = false;
+        // add extra * to end of /
+        if (pattern.endsWith("/")) {
+            pattern = pattern + "*";
+        }
+        if (pattern.startsWith("!")) {
+            disabledPluginSet = true;
+            pattern = pattern.substring(1);
+        }
 
-		boolean exclude = false;
-		if (pattern.startsWith("-")) {
-			exclude = true;
-			pattern = pattern.substring(1);
-		}
-		IPath basePath = new Path(pattern);
-		String pluginPattern = basePath.lastSegment();
-		IPath folderPattern = basePath.removeLastSegments(1);
+        boolean exclude = false;
+        if (pattern.startsWith("-")) {
+            exclude = true;
+            pattern = pattern.substring(1);
+        }
+        IPath basePath = new Path(pattern);
+        String pluginPattern = basePath.lastSegment();
+        IPath folderPattern = basePath.removeLastSegments(1);
 
-		// Go filter folders first
-		Set<RequireProject> result = new HashSet<RequireProject>();
-		result.addAll(availableProjects);
-		for (int i = 0; i < folderPattern.segmentCount(); i++) {
-			String part = folderPattern.segment(i);
-			if (part.equals("**")) {
-				break;// All already matched plugins is ok
-			}
-			if (part.equals("*")) {
-				// All on this level is ok.
-				continue;
-			}
-			List<RequireProject> toRemove = new ArrayList<RequireProject>();
-			for (RequireProject prj : result) {
-				IPath iPath = new Path(prj.getPath());
-				if (part.isEmpty() && i == folderPattern.segmentCount() - 1) {
-					if (iPath.segmentCount() > folderPattern.segmentCount()) {
-						toRemove.add(prj);
-					}
-					continue;
-				}
-				if (iPath.segmentCount() < i + 1) {
-					toRemove.add(prj);// Doesn't match because segment count
-										// is less
-				} else {
-					String segm = iPath.segment(i);
-					boolean match = matchSegment(segm, part);
-					// Only if full pattern match, do exclude
-					if ((match == (exclude && i == folderPattern.segmentCount() - 1))) {
-						toRemove.add(prj);
-					}
-				}
-			}
-			result.removeAll(toRemove);
-		}
-		// So lets filter plugin names here.
-		List<RequireProject> toRemove = new ArrayList<RequireProject>();
-		for (RequireProject prj : result) {
-			IPath iPath = new Path(prj.getPath());
-			String pluginName = iPath.lastSegment();
-			if (pluginPattern.equals("*")) {
-				continue;
-			}
-			if (matchSegment(pluginName, pluginPattern) == exclude) {
-				toRemove.add(prj);
-			}
-		}
-		result.removeAll(toRemove);
-		availableProjects.removeAll(result);
-		if (disabledPluginSet) {
-			result.clear();
-		}
-		return result;
-	}
+        // Go filter folders first
+        Set<RequireProject> result = new HashSet<RequireProject>();
+        result.addAll(availableProjects);
+        for (int i = 0; i < folderPattern.segmentCount(); i++) {
+            String part = folderPattern.segment(i);
+            if (part.equals("**")) {
+                break;// All already matched plugins is ok
+            }
+            if (part.equals("*")) {
+                // All on this level is ok.
+                continue;
+            }
+            List<RequireProject> toRemove = new ArrayList<RequireProject>();
+            for (RequireProject prj : result) {
+                IPath iPath = new Path(prj.getPath());
+                if (part.isEmpty() && i == folderPattern.segmentCount() - 1) {
+                    if (iPath.segmentCount() > folderPattern.segmentCount()) {
+                        toRemove.add(prj);
+                    }
+                    continue;
+                }
+                if (iPath.segmentCount() < i + 1) {
+                    toRemove.add(prj);// Doesn't match because segment count
+                                      // is less
+                } else {
+                    String segm = iPath.segment(i);
+                    boolean match = matchSegment(segm, part);
+                    // Only if full pattern match, do exclude
+                    if ((match == (exclude && i == folderPattern.segmentCount() - 1))) {
+                        toRemove.add(prj);
+                    }
+                }
+            }
+            result.removeAll(toRemove);
+        }
+        // So lets filter plugin names here.
+        List<RequireProject> toRemove = new ArrayList<RequireProject>();
+        for (RequireProject prj : result) {
+            IPath iPath = new Path(prj.getPath());
+            String pluginName = iPath.lastSegment();
+            if (pluginPattern.equals("*")) {
+                continue;
+            }
+            if (matchSegment(pluginName, pluginPattern) == exclude) {
+                toRemove.add(prj);
+            }
+        }
+        result.removeAll(toRemove);
+        availableProjects.removeAll(result);
+        if (disabledPluginSet) {
+            result.clear();
+        }
+        return result;
+    }
 
-	private static boolean matchSegment(String segm, String pattern) {
-		String[] patternParts = split(pattern);
-		String text = segm;
-		int index = 0;
-		for (String t : patternParts) {
-			int idx = text.indexOf(t);
-			if (idx == -1) {
-				return false;
-			}
-			if (index == 0 && !pattern.startsWith("*") && idx != 0) {
-				return false; // In case there is no * in start of pattern, and
-								// we found first part not at start
-			}
-			text = text.substring(idx + t.length());
-			index++;
-		}
-		return true;
-	}
+    private static boolean matchSegment(String segm, String pattern) {
+        String[] patternParts = split(pattern);
+        String text = segm;
+        int index = 0;
+        for (String t : patternParts) {
+            int idx = text.indexOf(t);
+            if (idx == -1) {
+                return false;
+            }
+            if (index == 0 && !pattern.startsWith("*") && idx != 0) {
+                return false; // In case there is no * in start of pattern, and
+                              // we found first part not at start
+            }
+            text = text.substring(idx + t.length());
+            index++;
+        }
+        return true;
+    }
 
-	private static String[] split(String pattern) {
-		List<String> result = new ArrayList<String>();
-		int pos = 0;
-		for (int i = 0; i < pattern.length(); i++) {
-			if (pattern.charAt(i) == '*') {
-				result.add(pattern.substring(pos, i));
-				pos = i + 1;
-			}
-		}
-		if (pos == 0 && pattern.length() > 0) {
-			result.add(pattern);
-		}
+    private static String[] split(String pattern) {
+        List<String> result = new ArrayList<String>();
+        int pos = 0;
+        for (int i = 0; i < pattern.length(); i++) {
+            if (pattern.charAt(i) == '*') {
+                result.add(pattern.substring(pos, i));
+                pos = i + 1;
+            }
+        }
+        if (pos == 0 && pattern.length() > 0) {
+            result.add(pattern);
+        }
 
-		return result.toArray(new String[result.size()]);
-	}
+        return result.toArray(new String[result.size()]);
+    }
 }
