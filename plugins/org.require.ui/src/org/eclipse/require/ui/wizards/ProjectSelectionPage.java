@@ -16,8 +16,11 @@ import org.eclipse.core.databinding.observable.set.WritableSet;
 import org.eclipse.core.databinding.observable.value.WritableValue;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.databinding.viewers.ViewersObservables;
 import org.eclipse.jface.layout.GridDataFactory;
@@ -48,6 +51,7 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.progress.UIJob;
 import org.require.core.RequireCorePlugin;
 import org.require.core.engine.RequireProjectEngine;
 import org.require.core.model.RequireProject;
@@ -245,34 +249,39 @@ public class ProjectSelectionPage extends WizardPage {
     private SelectionAdapter checkAllListener = new SelectionAdapter() {
         @Override
         public void widgetSelected(SelectionEvent e) {
+            List<TreeRequireElement> checkedChange = new ArrayList<>(); 
             for (TreeRequireElement ee : input) {
                 ee.setEnabled(true);
-                checked.add(ee);
+                
+                checkedChange.add(ee);
                 if (ee instanceof RequireProjectGroup) {
                     List<RequireProjectEntry> entries = ((RequireProjectGroup) ee).getEntries();
                     for (RequireProjectEntry p : entries) {
                         p.setEnabled(true);
                     }
-                    checked.addAll(entries);
+                    checkedChange.addAll(entries);
                 }
             }
+            checked.addAll(checkedChange);
             tree.refresh();
         }
     };
     private SelectionAdapter uncheckAllListener = new SelectionAdapter() {
         @Override
         public void widgetSelected(SelectionEvent e) {
+            List<TreeRequireElement> checkedChange = new ArrayList<>();
             for (TreeRequireElement ee : input) {
                 ee.setEnabled(false);
-                checked.remove(ee);
+                checkedChange.add(ee);
                 if (ee instanceof RequireProjectGroup) {
                     List<RequireProjectEntry> entries = ((RequireProjectGroup) ee).getEntries();
                     for (RequireProjectEntry p : entries) {
                         p.setEnabled(false);
                     }
-                    checked.removeAll(entries);
+                    checkedChange.addAll(entries);
                 }
             }
+            checked.removeAll(checkedChange);
             tree.refresh();
         }
     };
@@ -329,10 +338,10 @@ public class ProjectSelectionPage extends WizardPage {
         createViewer(control, 3);
         setControl(control);
         setPageComplete(false);
-
-        checked.addChangeListener(new IChangeListener() {
+        
+        final Job updateJob = new UIJob("Update page") {
             @Override
-            public void handleChange(ChangeEvent event) {
+            public IStatus runInUIThread(IProgressMonitor monitor) {
                 boolean hasEnabledProject = false;
                 for (Object e : checked.toArray()) {
                     if (e instanceof RequireProjectEntry) {
@@ -341,6 +350,19 @@ public class ProjectSelectionPage extends WizardPage {
                     }
                 }
                 setPageComplete(hasEnabledProject);
+                return Status.OK_STATUS;
+            }
+            @Override
+            public boolean belongsTo(Object family) {
+                return ProjectSelectionPage.this == family;
+            }
+        };
+
+        checked.addChangeListener(new IChangeListener() {
+            @Override
+            public void handleChange(ChangeEvent event) {
+                updateJob.cancel();
+                updateJob.schedule(100);
             }
         });
     }
