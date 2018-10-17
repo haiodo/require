@@ -9,6 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.eclipse.core.internal.resources.ProjectDescription;
 import org.eclipse.core.internal.resources.ProjectDescriptionReader;
@@ -21,6 +26,9 @@ import org.eclipse.osgi.util.ManifestElement;
 import org.require.core.RequireCorePlugin;
 import org.require.core.model.ConfigurationFactory;
 import org.require.core.model.RequireProject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 public class RequireProjectEngine {
@@ -108,9 +116,17 @@ public class RequireProjectEngine {
                     }
                     info.setName(name);
                     parseDependencies(info, manifest);
+
+                    result.add(info);
+                }
+            } else {
+                RequireProject info = parseFeature(dotFile);
+                if (info != null) {
+                    updatePaths(dir, segments, info);
                     result.add(info);
                 }
             }
+
         }
     }
 
@@ -129,16 +145,60 @@ public class RequireProjectEngine {
         if (manifest != null) {
             String reqBundles = manifest.get("Require-Bundle");
             if (reqBundles != null) {
-                StringTokenizer tok = new StringTokenizer(reqBundles, ",");
-                while (tok.hasMoreTokens()) {
-                    String ttok = tok.nextToken();
-                    int pos = ttok.indexOf(";");
-                    String name = ttok;
-                    if (pos != -1) {
-                        name = ttok.substring(0, pos);
+                parseRerequireBundle(info, reqBundles);
+            }
+
+            String classPath = manifest.get("Bundle-ClassPath");
+            if (classPath != null) {
+                StringTokenizer tk = new StringTokenizer(classPath, ",");
+                while (tk.hasMoreTokens()) {
+                    String el = tk.nextToken().trim();
+                    if (!".".equals(el)) {
+                        info.getJars().add(el);
                     }
-                    info.getDependencies().add(name);
                 }
+            }
+        }
+    }
+
+    private static void parseRerequireBundle(RequireProject info, String reqBundles) {
+        StringBuilder sb = new StringBuilder();
+        char[] chars = reqBundles.toCharArray();
+        int i = 0;
+        while (i < chars.length) {
+            char c = chars[i];
+            if (c == ',') {
+                if (sb.length() > 0) {
+                    info.getDependencies().add(sb.toString().trim());
+                    sb.setLength(0);
+                }
+                i++;
+                continue; // Skip this symbol
+            }
+            if (c == ';') {
+                if (sb.length() > 0) {
+                    info.getDependencies().add(sb.toString().trim());
+                    sb.setLength(0);
+                }
+                i++;
+                // We need to wait for next ,
+                boolean inRange = false;
+                while (i < chars.length) {
+                    c = chars[i];
+                    if (c == ',' && !inRange) {
+                        break;
+                    }
+                    if (c == '[' || c == '(') {
+                        inRange = true;
+                    }
+                    if (c == ']' || c == ')') {
+                        inRange = false;
+                    }
+                    i++;
+                }
+            } else {
+                sb.append(c);
+                i++;
             }
         }
     }
@@ -157,6 +217,38 @@ public class RequireProjectEngine {
                 } finally {
                 }
             }
+        }
+        return null;
+    }
+
+    private static RequireProject parseFeature(File dotFile) {
+        File featureXml = new File(dotFile.getParent(), "feature.xml");
+        if (featureXml.exists()) {
+            RequireProject info = ConfigurationFactory.eINSTANCE.createRequireProject();
+            try (InputStream zin = new BufferedInputStream(new FileInputStream(featureXml))) {
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder builder = factory.newDocumentBuilder();
+                Document document = builder.parse(zin);
+
+                // Add plugin dependencies
+                NodeList nodeList = document.getElementsByTagName("plugin");
+                if (nodeList != null && nodeList.getLength() > 0) {
+                    for (int i = 0; i < nodeList.getLength(); i++) {
+                        Element el = (Element) nodeList.item(i);
+                        String pluginId = el.getAttribute("id");
+                        if (pluginId != null) {
+                            info.getDependencies().add(pluginId);
+                        }
+                    }
+                }
+
+                info.setName(document.getDocumentElement().getAttribute("id"));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            } finally {
+
+            }
+            return info;
         }
         return null;
     }

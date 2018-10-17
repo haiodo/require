@@ -31,137 +31,137 @@ import org.require.core.model.EclipseProject;
  */
 public class EclipseProjectImpl extends EObjectImpl implements EclipseProject {
 	/**
-	 * The default value of the '{@link #getProject() <em>Project</em>}' attribute.
-	 * <!-- begin-user-doc -->
+     * The default value of the '{@link #getProject() <em>Project</em>}' attribute.
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #getProject()
-	 * @generated
-	 * @ordered
-	 */
+     * @see #getProject()
+     * @generated
+     * @ordered
+     */
 	protected static final Object PROJECT_EDEFAULT = null;
 
 	/**
-	 * The cached value of the '{@link #getProject() <em>Project</em>}' attribute.
-	 * <!-- begin-user-doc -->
+     * The cached value of the '{@link #getProject() <em>Project</em>}' attribute.
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #getProject()
-	 * @generated
-	 * @ordered
-	 */
+     * @see #getProject()
+     * @generated
+     * @ordered
+     */
 	protected Object project = PROJECT_EDEFAULT;
 
 	/**
-	 * <!-- begin-user-doc -->
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
-	 */
+     * @generated
+     */
 	protected EclipseProjectImpl() {
-		super();
-	}
+        super();
+    }
 
 	/**
-	 * <!-- begin-user-doc -->
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
-	 */
+     * @generated
+     */
 	@Override
 	protected EClass eStaticClass() {
-		return ConfigurationPackage.Literals.ECLIPSE_PROJECT;
-	}
+        return ConfigurationPackage.Literals.ECLIPSE_PROJECT;
+    }
 
 	/**
-	 * <!-- begin-user-doc -->
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
-	 */
+     * @generated
+     */
 	public Object getProject() {
-		return project;
-	}
+        return project;
+    }
 
 	/**
-	 * <!-- begin-user-doc -->
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
-	 */
+     * @generated
+     */
 	public void setProject(Object newProject) {
-		Object oldProject = project;
-		project = newProject;
-		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, ConfigurationPackage.ECLIPSE_PROJECT__PROJECT, oldProject, project));
-	}
+        Object oldProject = project;
+        project = newProject;
+        if (eNotificationRequired())
+            eNotify(new ENotificationImpl(this, Notification.SET, ConfigurationPackage.ECLIPSE_PROJECT__PROJECT, oldProject, project));
+    }
 
 	/**
-	 * <!-- begin-user-doc -->
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
-	 */
+     * @generated
+     */
 	@Override
 	public Object eGet(int featureID, boolean resolve, boolean coreType) {
-		switch (featureID) {
-			case ConfigurationPackage.ECLIPSE_PROJECT__PROJECT:
-				return getProject();
-		}
-		return super.eGet(featureID, resolve, coreType);
-	}
+        switch (featureID) {
+            case ConfigurationPackage.ECLIPSE_PROJECT__PROJECT:
+                return getProject();
+        }
+        return super.eGet(featureID, resolve, coreType);
+    }
 
 	/**
-	 * <!-- begin-user-doc -->
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
-	 */
+     * @generated
+     */
 	@Override
 	public void eSet(int featureID, Object newValue) {
-		switch (featureID) {
-			case ConfigurationPackage.ECLIPSE_PROJECT__PROJECT:
-				setProject(newValue);
-				return;
-		}
-		super.eSet(featureID, newValue);
-	}
+        switch (featureID) {
+            case ConfigurationPackage.ECLIPSE_PROJECT__PROJECT:
+                setProject(newValue);
+                return;
+        }
+        super.eSet(featureID, newValue);
+    }
 
 	/**
-	 * <!-- begin-user-doc -->
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
-	 */
+     * @generated
+     */
 	@Override
 	public void eUnset(int featureID) {
-		switch (featureID) {
-			case ConfigurationPackage.ECLIPSE_PROJECT__PROJECT:
-				setProject(PROJECT_EDEFAULT);
-				return;
-		}
-		super.eUnset(featureID);
-	}
+        switch (featureID) {
+            case ConfigurationPackage.ECLIPSE_PROJECT__PROJECT:
+                setProject(PROJECT_EDEFAULT);
+                return;
+        }
+        super.eUnset(featureID);
+    }
 
 	/**
-	 * <!-- begin-user-doc -->
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
-	 */
+     * @generated
+     */
 	@Override
 	public boolean eIsSet(int featureID) {
-		switch (featureID) {
-			case ConfigurationPackage.ECLIPSE_PROJECT__PROJECT:
-				return PROJECT_EDEFAULT == null ? project != null : !PROJECT_EDEFAULT.equals(project);
-		}
-		return super.eIsSet(featureID);
-	}
+        switch (featureID) {
+            case ConfigurationPackage.ECLIPSE_PROJECT__PROJECT:
+                return PROJECT_EDEFAULT == null ? project != null : !PROJECT_EDEFAULT.equals(project);
+        }
+        return super.eIsSet(featureID);
+    }
 
 	/**
-	 * <!-- begin-user-doc -->
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
-	 */
+     * @generated
+     */
 	@Override
 	public String toString() {
-		if (eIsProxy()) return super.toString();
+        if (eIsProxy()) return super.toString();
 
-		StringBuffer result = new StringBuffer(super.toString());
-		result.append(" (project: ");
-		result.append(project);
-		result.append(')');
-		return result.toString();
-	}
+        StringBuffer result = new StringBuffer(super.toString());
+        result.append(" (project: ");
+        result.append(project);
+        result.append(')');
+        return result.toString();
+    }
 
 } //EclipseProjectImpl

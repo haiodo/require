@@ -24,87 +24,87 @@ import org.require.core.model.*;
  */
 public class ConfigurationFactoryImpl extends EFactoryImpl implements ConfigurationFactory {
 	/**
-	 * Creates the default factory implementation.
-	 * <!-- begin-user-doc -->
+     * Creates the default factory implementation.
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
-	 */
+     * @generated
+     */
 	public static ConfigurationFactory init() {
-		try {
-			ConfigurationFactory theConfigurationFactory = (ConfigurationFactory)EPackage.Registry.INSTANCE.getEFactory(ConfigurationPackage.eNS_URI);
-			if (theConfigurationFactory != null) {
-				return theConfigurationFactory;
-			}
-		}
-		catch (Exception exception) {
-			EcorePlugin.INSTANCE.log(exception);
-		}
-		return new ConfigurationFactoryImpl();
-	}
+        try {
+            ConfigurationFactory theConfigurationFactory = (ConfigurationFactory)EPackage.Registry.INSTANCE.getEFactory(ConfigurationPackage.eNS_URI);
+            if (theConfigurationFactory != null) {
+                return theConfigurationFactory;
+            }
+        }
+        catch (Exception exception) {
+            EcorePlugin.INSTANCE.log(exception);
+        }
+        return new ConfigurationFactoryImpl();
+    }
 
 	/**
-	 * Creates an instance of the factory.
-	 * <!-- begin-user-doc -->
+     * Creates an instance of the factory.
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
-	 */
+     * @generated
+     */
 	public ConfigurationFactoryImpl() {
-		super();
-	}
+        super();
+    }
 
 	/**
-	 * <!-- begin-user-doc -->
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
-	 */
+     * @generated
+     */
 	@Override
 	public EObject create(EClass eClass) {
-		switch (eClass.getClassifierID()) {
-			case ConfigurationPackage.REQUIRE_PROJECT: return createRequireProject();
-			case ConfigurationPackage.ECLIPSE_PROJECT: return createEclipseProject();
-			default:
-				throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
-		}
-	}
+        switch (eClass.getClassifierID()) {
+            case ConfigurationPackage.REQUIRE_PROJECT: return createRequireProject();
+            case ConfigurationPackage.ECLIPSE_PROJECT: return createEclipseProject();
+            default:
+                throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
+        }
+    }
 
 	/**
-	 * <!-- begin-user-doc -->
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
-	 */
+     * @generated
+     */
 	public RequireProject createRequireProject() {
-		RequireProjectImpl requireProject = new RequireProjectImpl();
-		return requireProject;
-	}
+        RequireProjectImpl requireProject = new RequireProjectImpl();
+        return requireProject;
+    }
 
 	/**
-	 * <!-- begin-user-doc -->
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
-	 */
+     * @generated
+     */
 	public EclipseProject createEclipseProject() {
-		EclipseProjectImpl eclipseProject = new EclipseProjectImpl();
-		return eclipseProject;
-	}
+        EclipseProjectImpl eclipseProject = new EclipseProjectImpl();
+        return eclipseProject;
+    }
 
 	/**
-	 * <!-- begin-user-doc -->
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @generated
-	 */
+     * @generated
+     */
 	public ConfigurationPackage getConfigurationPackage() {
-		return (ConfigurationPackage)getEPackage();
-	}
+        return (ConfigurationPackage)getEPackage();
+    }
 
 	/**
-	 * <!-- begin-user-doc -->
+     * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @deprecated
-	 * @generated
-	 */
+     * @deprecated
+     * @generated
+     */
 	@Deprecated
 	public static ConfigurationPackage getPackage() {
-		return ConfigurationPackage.eINSTANCE;
-	}
+        return ConfigurationPackage.eINSTANCE;
+    }
 
 } //ConfigurationFactoryImpl
